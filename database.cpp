@@ -11,7 +11,7 @@ bool database::init()
     QSettings settings("DB_Clients","DB_Clients");
     //Ouverture de la DB
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(settings.value("linkDB").toString() + "/Clients/bdd.db");
+    db.setDatabaseName(settings.value("linkDB").toString() + "/bdd.db");
     db.setHostName("127.0.0.1");
 
     if(db.open() == false)
