@@ -72,7 +72,9 @@ void MainWindow::About()
 void MainWindow::Init()
 {
     QSettings settings("DB_Clients","DB_Clients");
-    docFilePath = settings.value("linkFolder").toString();
+    if(!settings.value("linkFolder").toString().isEmpty()) {
+        docFilePath = settings.value("linkFolder").toString();
+    }
 
     QDir dir;
     dir.mkdir(docFilePath);
