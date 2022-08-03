@@ -38,8 +38,8 @@ void Options::Init()
     if(settings.value("linkDB").toString().isEmpty())
         settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Client/");
 
-    ui->empFolder->setText(settings.value("linkFolder").toString());
-    ui->empBDD->setText(settings.value("linkDB").toString());
+    ui->empFolder->setText(settings.value("linkFolder").toString().replace("DB_Clients",""));
+    ui->empBDD->setText(settings.value("linkDB").toString().replace("DB_Clients",""));
 
     ui->listFin->setDragEnabled(true);
     ui->listFin->setDragDropMode(QAbstractItemView::InternalMove);
@@ -91,8 +91,8 @@ void Options::Save()
     QSqlQuery req;
 
     QSettings settings("DB_Clients","DB_Clients");
-    settings.setValue("linkFolder", ui->empFolder->text());
-    settings.setValue("linkDB", ui->empBDD->text());
+    settings.setValue("linkFolder", ui->empFolder->text() + "DB_Clients");
+    settings.setValue("linkDB", ui->empBDD->text() + "DB_Clients");
 
 
     int id = database::Get_Last_Id()+1;
