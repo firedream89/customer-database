@@ -385,6 +385,10 @@ void MainWindow::Clear()
     ui->nbDocuments->setText(0);
     ui->commentaire->clear();
     ui->mainTable->hideColumn(0);
+    ui->inRappelFin->setValue(0);
+    ui->inRappelLiv->setValue(0);
+    ui->comboRappelFin->setCurrentIndex(0);
+    ui->comboRappelLiv->setCurrentIndex(0);
 
     while(ui->mainTable->rowCount() > 0)
         ui->mainTable->removeRow(0);
