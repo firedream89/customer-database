@@ -342,9 +342,10 @@ void MainWindow::UpdateTable()
         ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
         ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString()));
         ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
-        ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("car_Purchased").toString()));
-        ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("date_Livraison_Initial").toDate().toString("dd-MM-yyyy")));
-        ui->mainTable->setItem(0, 5, new QTableWidgetItem(RappelToStr(query.value("rappel").toInt())));
+        ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
+        ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
+        ui->mainTable->setItem(0, 5, new QTableWidgetItem(query.value("date_Livraison_Initial").toDate().toString("dd-MM-yyyy")));
+        ui->mainTable->setItem(0, 6, new QTableWidgetItem(RappelToStr(query.value("rappel").toInt())));
 
         QColor color;
         switch (query.value("rappel").toInt()) {
@@ -357,7 +358,7 @@ void MainWindow::UpdateTable()
         default:
             color.setRgb(0, 0, 200);
         }
-        ui->mainTable->item(0, 5)->setForeground(QBrush(color));
+        ui->mainTable->item(0, ui->mainTable->columnCount()-1)->setForeground(QBrush(color));
 
         ui->mainTable->setAlternatingRowColors(true);
     }
@@ -426,9 +427,10 @@ void MainWindow::Search(QString word)
             ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
             ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString()));
             ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
-            ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("car_Purchased").toString()));
-            ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("date_Livraison_Initial").toDate().toString("dd-MM-yyyy")));
-            ui->mainTable->setItem(0, 5, new QTableWidgetItem(RappelToStr(query.value("rappel").toInt())));
+            ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
+            ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
+            ui->mainTable->setItem(0, 5, new QTableWidgetItem(query.value("date_Livraison_Initial").toDate().toString("dd-MM-yyyy")));
+            ui->mainTable->setItem(0, 6, new QTableWidgetItem(RappelToStr(query.value("rappel").toInt())));
 
             QColor color;
             switch (query.value("rappel").toInt()) {
@@ -441,7 +443,7 @@ void MainWindow::Search(QString word)
             default:
                 color.setRgb(0, 0, 200);
             }
-            ui->mainTable->item(0, 5)->setForeground(QBrush(color));
+            ui->mainTable->item(0, ui->mainTable->columnCount()-1)->setForeground(QBrush(color));
         }
     }
 }
@@ -538,8 +540,9 @@ void MainWindow::RappelProcess()
             ui->rappelTable->setItem(0, 0, new QTableWidgetItem(test.value("ID").toString()));
             ui->rappelTable->setItem(0, 1, new QTableWidgetItem(test.value("nom").toString()));
             ui->rappelTable->setItem(0, 2, new QTableWidgetItem(test.value("prenom").toString()));
-            ui->rappelTable->setItem(0, 3, new QTableWidgetItem(test.value("car_Purchased").toString()));
-            ui->rappelTable->setItem(0, 4, new QTableWidgetItem(rappel));
+            ui->rappelTable->setItem(0, 3, new QTableWidgetItem(test.value("phone").toString()));
+            ui->rappelTable->setItem(0, 4, new QTableWidgetItem(test.value("car_Purchased").toString()));
+            ui->rappelTable->setItem(0, 5, new QTableWidgetItem(rappel));
         }
     }
     ui->rappelTable->resizeColumnToContents(4);
