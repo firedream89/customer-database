@@ -10,8 +10,9 @@ bool database::init()
 {
     QSettings settings("DB_Clients","DB_Clients");
     //Ouverture de la DB
+    QString linkDB = settings.value("linkDB").toString().isEmpty() ? QDir::homePath() + "/Documents/DB_Client" : settings.value("linkDB").toString();
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(settings.value("linkDB").toString() + "/bdd.db");
+    db.setDatabaseName(linkDB + "/bdd.db");
     db.setHostName("127.0.0.1");
 
     if(db.open() == false)
