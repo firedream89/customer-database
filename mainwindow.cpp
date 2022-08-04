@@ -555,12 +555,12 @@ void MainWindow::SendEmail()
     if(items.count() == 0)
         return;
 
-    QString link = "mailto:?subject=&cc=&bcc=%1&body=";
+    QString link = "mailto:%1";
     QString destinataires = "";
     for(int i = 0; i < items.count(); i++) {
         DEBUG << items.at(i)->row();
         QSqlQuery req;
-        req.exec("SELECT * FROM Clients WHERE ID='" + ui->rappelTable->item(items.at(i)->row(),ui->rappelTable->columnCount()-1)->text() + "'");
+        req.exec("SELECT * FROM Clients WHERE ID='" + ui->rappelTable->item(items.at(i)->row(),0)->text() + "'");
         if(req.next())
             destinataires += req.value("email").toString() + ";";
     }
