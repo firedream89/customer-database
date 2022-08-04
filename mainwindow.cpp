@@ -192,14 +192,30 @@ void MainWindow::Save_Client()
 
         QStringList listDoc = doc.split(";");
         for(int i = 0; i < listDoc.count(); i++) {
-            QString doc = listDoc.at(i).split("|").first();
-            if(doc.count() != 2)
+            QString doc = listDoc.at(i).split("|").count() == 2 ? listDoc.at(i).split("|").first() : "";
+            if(doc.isEmpty())
                 continue;
-            QFile f(docFilePath + doc);
-            if(f.copy(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc))
-                f.remove();
-            else
-                warning(QString("Le fichier %1 n'a pas pu être déplacé !").arg(doc));
+
+            QFile f(docFilePath + "/" +  doc);
+            QFile fDest(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc);
+
+            bool copy = true;
+            if(fDest.exists()) {//Si le fichier existe déjà
+                copy = false;
+                if(f.exists() && QMessageBox::question(this, "Remplacement fichier", "Le fichier existe déjà dans le dossier client, voulez-vous le remplacer ?") == QMessageBox::Yes) {
+                    fDest.remove();
+                    copy = true;
+                }
+            }
+
+            if(copy) {
+                if(f.copy(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc)) {
+                    if(!f.remove())
+                        warning(QString("Le fichier %1 n'a pas pu être supprimé !").arg(doc));
+                }
+                else
+                    warning(QString("Le fichier %1 n'a pas pu être déplacé !").arg(doc));
+            }
         }
     }
 
@@ -249,6 +265,8 @@ void MainWindow::UpdateCalendar()
 
 void MainWindow::EditClient(int id)
 {
+    Reload();
+
     QSqlQuery request;
     request.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
 
@@ -427,17 +445,19 @@ void MainWindow::Search(QString word)
 void MainWindow::AddDocuments()
 {
     QDir dir(docFilePath);
-    QFileInfoList list = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+    QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
 
+    int nbRows = ui->tableDocuments->rowCount();
     ui->nbDocuments->setText(QString::number(list.count()));
     for(int i = 0; i < list.count(); i++) {
         QString name = list.at(i).fileName();
-        ui->tableDocuments->insertRow(0);
-        ui->tableDocuments->setItem(0, 0, new QTableWidgetItem(name));
-
+        if(name == "bdd.db")
+            continue;
+        ui->tableDocuments->insertRow(i + nbRows);
+        ui->tableDocuments->setItem(i + nbRows, 0, new QTableWidgetItem(name));
 
         QComboBox* combo = new QComboBox(ui->tableDocuments);
-        combo->setObjectName(QString::number(i));
+        combo->setObjectName(QString::number(i + nbRows));
         combo->addItem("");
         combo->setItemData(0,0);
         combo->addItem("Fiche force");
@@ -446,7 +466,7 @@ void MainWindow::AddDocuments()
         combo->setItemData(2,2);
         combo->addItem("Fiche de reprise");
         combo->setItemData(3,3);
-        ui->tableDocuments->setCellWidget(0, 1, combo);
+        ui->tableDocuments->setCellWidget(i + nbRows, 1, combo);
     }
 
     ui->tableDocuments->setAlternatingRowColors(true);

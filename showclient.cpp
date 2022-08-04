@@ -87,8 +87,9 @@ void ShowClient::UpdateClient()
 void ShowClient::ShowDoc(int row, int column)
 {
     QString doc = ui->tableDocuments->item(row,0)->text();
-    QString link = docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc;
-    QDesktopServices::openUrl(link);
+    QString link = "file:///" + docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc;
+    if(!QDesktopServices::openUrl(QUrl(link, QUrl::TolerantMode)))
+        QMessageBox::warning(this, "Erreur", "Le fichier n'a pas pu être ouvert(manquant ?)");
 }
 
 
