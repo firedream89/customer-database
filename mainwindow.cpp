@@ -151,9 +151,7 @@ void MainWindow::Save_Client()
     }
 
     QDate rappel_financement = ui->expectedDeliveryDate->selectedDate();
-    rappel_financement = rappel_financement.addMonths(ui->repaymentPeriod->currentText().split(" ").first().toInt());
     value = ui->inRappelFin->value();
-    value = value - value * 2;
     switch (ui->comboRappelFin->currentIndex()) {
     case 0:
         rappel_financement = rappel_financement.addDays(value);
