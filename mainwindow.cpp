@@ -19,6 +19,21 @@ QString RappelToStr(int rappel)
     }
 }
 
+QList<QTableWidgetItem*> SuppressionDoublon(QList<QTableWidgetItem*> items)
+{
+    DEBUG << "Before" << items.count();
+    QList<QTableWidgetItem*> finalList;
+    QList<int> index;
+    foreach (QTableWidgetItem *item, items) {
+       if(!index.contains(item->row())) {
+           finalList.append(item);
+           index.append(item->row());
+       }
+    }
+    DEBUG << "After" << finalList.count();
+    return finalList;
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -544,7 +559,7 @@ void MainWindow::RappelProcess()
 
 void MainWindow::SendEmail()
 {
-    QList<QTableWidgetItem*> items = ui->rappelTable->selectedItems();
+    QList<QTableWidgetItem*> items = SuppressionDoublon(ui->rappelTable->selectedItems());
 
     if(items.count() == 0)
         return;
@@ -564,7 +579,7 @@ void MainWindow::SendEmail()
 
 void MainWindow::UpdateRappel()
 {
-    QList<QTableWidgetItem*> items = ui->rappelTable->selectedItems();
+    QList<QTableWidgetItem*> items = SuppressionDoublon(ui->rappelTable->selectedItems());
 
     if(items.count() > 0 && QMessageBox::question(this,"Validation rappels",QString("Voulez-vous vraiment retirer %1 de la liste de rappel ?").arg(items.count())) == QMessageBox::Yes) {
         for(int i = 0; i < items.count(); i++) {
