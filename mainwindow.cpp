@@ -86,7 +86,6 @@ void MainWindow::Init()
     Clear();
 
     ui->rappelTable->hideColumn(0);
-    ui->rappelTable->setAlternatingRowColors(true);
     ui->tabWidget->setCurrentIndex(0);
 
     UpdateTable();
@@ -320,9 +319,10 @@ void MainWindow::EditClient(int id)
                 ui->tableDocuments->setItem(0,0, new QTableWidgetItem(doc.at(i).split("|").first()));
                 ui->tableDocuments->setCellWidget(0, 1, combo);
                 combo->setCurrentText(doc.at(i).split("|").last());
+                ui->tableDocuments->item(0,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+                ui->tableDocuments->item(0,1)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             }
         }
-        ui->tableDocuments->setAlternatingRowColors(true);
 
         ui->tabWidget->setTabVisible(2, true);
         ui->tabWidget->setCurrentIndex(2);
@@ -357,8 +357,6 @@ void MainWindow::UpdateTable()
             color.setRgb(0, 0, 200);
         }
         ui->mainTable->item(0, ui->mainTable->columnCount()-1)->setForeground(QBrush(color));
-
-        ui->mainTable->setAlternatingRowColors(true);
     }
 }
 
@@ -472,8 +470,6 @@ void MainWindow::AddDocuments()
         combo->setItemData(3,3);
         ui->tableDocuments->setCellWidget(i + nbRows, 1, combo);
     }
-
-    ui->tableDocuments->setAlternatingRowColors(true);
     ui->tableDocuments->resizeColumnsToContents();
 }
 

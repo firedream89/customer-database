@@ -279,6 +279,9 @@
         </item>
         <item row="1" column="0" colspan="3">
          <widget class="QTableWidget" name="tableDocuments">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
           <column>
            <property name="text">
             <string>Nom</string>

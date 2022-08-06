@@ -61,9 +61,11 @@ void ShowClient::SetValues(QSqlQuery request)
                 ui->tableDocuments->insertRow(0);
                 ui->tableDocuments->setItem(0,0, new QTableWidgetItem(doc.at(i).split("|").first()));
                 ui->tableDocuments->setItem(0,1,new QTableWidgetItem(doc.at(i).split("|").last()));
+                ui->tableDocuments->item(0,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+                ui->tableDocuments->item(0,1)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
             }
         }
-        ui->tableDocuments->setAlternatingRowColors(true);
         ui->tableDocuments->resizeColumnsToContents();
     }
 }

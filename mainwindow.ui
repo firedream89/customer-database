@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="main">
        <attribute name="title">
@@ -34,6 +34,18 @@
         </item>
         <item row="1" column="0" colspan="2">
          <widget class="QTableWidget" name="mainTable">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+          <property name="textElideMode">
+           <enum>Qt::ElideLeft</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
           <column>
            <property name="text">
             <string>ID</string>
@@ -110,6 +122,9 @@
         </item>
         <item row="1" column="0" colspan="4">
          <widget class="QTableWidget" name="rappelTable">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
           <column>
            <property name="text">
             <string>ID</string>
@@ -409,6 +424,9 @@
              </item>
              <item row="1" column="0" colspan="3">
               <widget class="QTableWidget" name="tableDocuments">
+               <property name="alternatingRowColors">
+                <bool>true</bool>
+               </property>
                <column>
                 <property name="text">
                  <string>Nom</string>
