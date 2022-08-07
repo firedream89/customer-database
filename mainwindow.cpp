@@ -21,7 +21,6 @@ QString RappelToStr(int rappel)
 
 QList<QTableWidgetItem*> SuppressionDoublon(QList<QTableWidgetItem*> items)
 {
-    DEBUG << "Before" << items.count();
     QList<QTableWidgetItem*> finalList;
     QList<int> index;
     foreach (QTableWidgetItem *item, items) {
@@ -30,7 +29,6 @@ QList<QTableWidgetItem*> SuppressionDoublon(QList<QTableWidgetItem*> items)
            index.append(item->row());
        }
     }
-    DEBUG << "After" << finalList.count();
     return finalList;
 }
 
@@ -599,6 +597,7 @@ void MainWindow::UpdateRappel()
             req.exec(QString("UPDATE Clients SET rappel='" + QString::number(rappel) + "' WHERE ID='" + idStr) + "'");
         }
         RappelProcess();
+        UpdateTable();
     }
 }
 
