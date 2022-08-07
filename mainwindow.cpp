@@ -3,6 +3,12 @@
 #include "showclient.h"
 #include "options.h"
 
+enum rappel_State {
+    Tous,
+    Financement,
+    Aucun
+};
+
 QString appVersion = "1.0";
 
 QString RappelToStr(int rappel)
@@ -71,9 +77,15 @@ void MainWindow::About()
     QLabel *version = new QLabel(appVersion,d);
     layout.addRow("Version", version);
 
+    QLabel *author = new QLabel("BRIAND Kévin",d);
+    layout.addRow("Auteur", author);
+
+    QLabel *licence = new QLabel("LGPL-2.1",d);
+    layout.addRow("Licence", licence);
+
     QLabel *repo = new QLabel("<a href='https://github.com/firedream89/customer-database'>Ouvrir</a>",d);
     repo->setOpenExternalLinks(true);
-    layout.addRow("Dépot", repo);
+    layout.addRow("Sources", repo);
 
     QPushButton *Qt = new QPushButton("Info",d);
     connect(Qt, &QPushButton::clicked, qApp, &QApplication::aboutQt);
@@ -345,6 +357,7 @@ void MainWindow::EditClient(int id)
 void MainWindow::UpdateTable()
 {
     Clear();
+     ui->mainTable->setSortingEnabled(false);
 
     QSqlQuery query;
     query.exec("SELECT * FROM Clients");
@@ -371,6 +384,7 @@ void MainWindow::UpdateTable()
         }
         ui->mainTable->item(0, ui->mainTable->columnCount()-1)->setForeground(QBrush(color));
     }
+     ui->mainTable->setSortingEnabled(true);
 }
 
 void MainWindow::Reload()
@@ -425,6 +439,7 @@ void MainWindow::Clear()
 void MainWindow::Search(QString word)
 {
     Clear();
+    ui->mainTable->setSortingEnabled(false);
 
     QSqlQuery query;
     query.exec("SELECT * FROM Clients");
@@ -455,6 +470,7 @@ void MainWindow::Search(QString word)
             ui->mainTable->item(0, ui->mainTable->columnCount()-1)->setForeground(QBrush(color));
         }
     }
+     ui->mainTable->setSortingEnabled(true);
 }
 
 void MainWindow::AddDocuments()
@@ -523,6 +539,7 @@ void MainWindow::ResizeTable(int tab)
 
 void MainWindow::RappelProcess()
 {
+    ui->rappelTable->setSortingEnabled(false);
     while(ui->rappelTable->rowCount() > 0)
         ui->rappelTable->removeRow(0);
 
@@ -530,16 +547,20 @@ void MainWindow::RappelProcess()
     date = date.addDays(_rappel_jours_livraison);
 
     //Livraison
+    int rappelLiv = 0;
+    int rappelFin = 0;
     QSqlQuery test;
     test.exec("SELECT * FROM Clients");
     while(test.next()) {
         QStringList typeRappel;
         if(test.value("rappel_Livraison").toDate() <= QDate::currentDate() && test.value("rappel").toInt() == 0) {
             typeRappel.append("Livraison prévu le " + test.value("date_Livraison_Prevu").toDate().toString("dd-MM-yyyy"));
+            rappelLiv++;
         }
         if(test.value("rappel_Financement").toDate() <= QDate::currentDate() && test.value("rappel").toInt() < 2) {
             typeRappel.append("Fin de financement prévu le " + test.value("date_Livraison_Prevu").toDate().addMonths(
                                   test.value("duree_Financement").toInt()).toString("dd-MM-yyyy"));
+            rappelFin++;
         }
 
         foreach (QString rappel, typeRappel) {
@@ -552,7 +573,8 @@ void MainWindow::RappelProcess()
             ui->rappelTable->setItem(0, 5, new QTableWidgetItem(rappel));
         }
     }
-    ui->rappelTable->resizeColumnToContents(4);
+    ui->rappelTable->setSortingEnabled(true);
+    ui->statusbar->showMessage(tr("RAPPEL : Livraison(s) : %1  Fin de Financement : %2").arg(rappelLiv).arg(rappelFin));
 }
 
 void MainWindow::SendEmail()

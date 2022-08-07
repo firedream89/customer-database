@@ -14,12 +14,6 @@
     #define DEBUG qDebug()
 #endif
 
-enum rappel_State {
-    Tous,
-    Financement,
-    Aucun
-};
-
 #include "database.h"
 
 QT_BEGIN_NAMESPACE

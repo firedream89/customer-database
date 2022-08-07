@@ -1,6 +1,26 @@
 #include "showclient.h"
 #include "ui_showclient.h"
 
+enum rappel_State {
+    Tous,
+    Financement,
+    Aucun
+};
+
+QString InfoRappelToStr(int rappel)
+{
+    switch (rappel) {
+    case Tous:
+        return "Livraison et Financement";
+        break;
+    case Financement:
+        return "Financement";
+        break;
+    default:
+        return "Aucun";
+    }
+}
+
 ShowClient::ShowClient(QWidget *parent, int id) :
     QDialog(parent),
     ui(new Ui::ShowClient)
@@ -44,6 +64,9 @@ void ShowClient::SetValues(QSqlQuery request)
         ui->engReprise->setText(request.value("eng_Reprise").toString() + "€");
         ui->rappelLiv->setText(request.value("rappel_Livraison").toDate().toString("dd-MM-yyyy"));
         ui->rappelFin->setText(request.value("rappel_Financement").toDate().toString("dd-MM-yyyy"));
+
+
+        ui->infoRappel->setText(InfoRappelToStr(request.value("rappel").toInt()));
 
         this->setWindowTitle(ui->surname->text() + " " + ui->name->text());
 
