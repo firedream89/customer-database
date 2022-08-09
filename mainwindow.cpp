@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "showclient.h"
 #include "options.h"
+#include "ui_showclient.h"
 
 enum rappel_State {
     Tous,
@@ -62,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionBug_report, &QAction::triggered, this, &MainWindow::Bug_Report);
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::ResizeTable);
     connect(ui->searchEdit, &QLineEdit::textEdited, this, &MainWindow::Search);
+    connect(ui->tableDocuments, &QTableWidget::cellDoubleClicked, this, &MainWindow::ShowDoc);
 }
 
 MainWindow::~MainWindow()
@@ -185,6 +187,35 @@ void MainWindow::Save_Client()
         break;
     case 2:
         rappel_financement = rappel_financement.addYears(value);
+    }
+
+
+    //Move files
+    QSqlQuery req;
+    req.exec("SELECT * FROM Clients WHERE ID='" + ui->id->text() + "'");
+    if(req.next()) {
+        if(ui->name->text() != req.value("nom").toString() || ui->surname->text() != req.value("prenom").toString()) {
+            QDir dir;
+            if(dir.mkpath(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text()) && !doc.isEmpty()) {
+                QStringList listDoc = doc.split(";");
+                bool copyOk = true;
+                foreach(QString file, listDoc) {
+                    if(!QFile::copy(docFilePath + SavedFilePath + req.value("nom").toString() + "_" + req.value("prenom").toString() + "/" + ui->id->text() + "/" + file.split("|").first(),
+                                docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + file.split("|").first())) {
+                        warning(tr("Echec de déplacement du fichier %1!").arg(file.split("|").first()));
+                        copyOk = false;
+                    }
+                    else
+                        QFile::remove(docFilePath + SavedFilePath + req.value("nom").toString() + "_" + req.value("prenom").toString() + "/" + ui->id->text() + "/" + file.split("|").first());
+                }
+                if(copyOk) {
+                    dir.setPath(docFilePath + SavedFilePath + req.value("nom").toString() + "_" + req.value("prenom").toString());
+                    if(!dir.removeRecursively())
+                        warning(tr("Le dossier %1 n'a pas pu être supprimé !").arg(req.value("nom").toString() + "_" + req.value("prenom").toString()));
+                }
+            }
+
+        }
     }
 
     //Ajout DB
@@ -345,10 +376,10 @@ void MainWindow::EditClient(int id)
                 ui->tableDocuments->setCellWidget(0, 1, combo);
                 combo->setCurrentText(doc.at(i).split("|").last());
                 ui->tableDocuments->item(0,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-                ui->tableDocuments->item(0,1)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             }
         }
 
+        ui->tableDocuments->resizeColumnsToContents();
         ui->tabWidget->setTabVisible(2, true);
         ui->tabWidget->setCurrentIndex(2);
     }
@@ -623,8 +654,13 @@ void MainWindow::UpdateRappel()
     }
 }
 
-
-
+void MainWindow::ShowDoc(int row, int column)
+{
+    QString doc = ui->tableDocuments->item(row,0)->text();
+    QString link = "file:///" + docFilePath + "/" + doc;
+    if(!QDesktopServices::openUrl(QUrl(link, QUrl::TolerantMode)))
+        QMessageBox::warning(this, "Erreur", "Le fichier n'a pas pu être ouvert(manquant ?)");
+}
 
 
 

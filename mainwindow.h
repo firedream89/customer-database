@@ -46,6 +46,7 @@ public:
     void ResizeTable(int tab);
     void About();
     void Bug_Report() { QDesktopServices::openUrl(QUrl("https://github.com/firedream89/customer-database/issues")); };
+    void ShowDoc(int row, int column);
 
 private:
     void ResizeTableColumns(QTableWidget *table);
