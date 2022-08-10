@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 #include "showclient.h"
 #include "options.h"
-#include "ui_showclient.h"
 
 enum rappel_State {
     Tous,
@@ -442,7 +441,7 @@ void MainWindow::Clear()
     ui->mainTable->hideColumn(0);
     ui->inRappelFin->setValue(0);
     ui->inRappelLiv->setValue(0);
-    ui->comboRappelFin->setCurrentIndex(0);
+    ui->comboRappelFin->setCurrentIndex(1);
     ui->comboRappelLiv->setCurrentIndex(0);
 
     while(ui->mainTable->rowCount() > 0)
