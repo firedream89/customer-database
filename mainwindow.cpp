@@ -47,6 +47,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     Init();
 
+    ///////testing open pdf
+    QPdfDocument *pdf = new QPdfDocument;
+    DEBUG << pdf->load("test.pdf");
+    QPdfView *view = new QPdfView();
+    view->setPageMode(QPdfView::MultiPage);
+    view->setDocument(pdf);
+    view->show();
+    /////////////
+
     this->setWindowTitle("Database Clients " + appVersion);
 
     connect(ui->newClientBt, &QPushButton::clicked, this, &MainWindow::New);
