@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::ResizeTable);
     connect(ui->searchEdit, &QLineEdit::textEdited, this, &MainWindow::Search);
     connect(ui->tableDocuments, &QTableWidget::cellDoubleClicked, this, &MainWindow::ShowDoc);
+    connect(ui->activRappelLiv, &QCheckBox::stateChanged, this, &MainWindow::ActivateRappelFin);
 }
 
 MainWindow::~MainWindow()
@@ -122,6 +123,12 @@ void MainWindow::Init()
 void MainWindow::warning(QString text)
 {
     QMessageBox::warning(this, "Erreur", text);
+}
+
+void MainWindow::ActivateRappelFin(int checkState)
+{
+    if(checkState)
+        ui->activRappelFin->setChecked(true);
 }
 
 void MainWindow::Save_Client()
@@ -188,6 +195,14 @@ void MainWindow::Save_Client()
         rappel_financement = rappel_financement.addYears(value);
     }
 
+    //Set rappel
+    int rappel = Tous;
+    if(!ui->activRappelLiv->isChecked()) {
+        rappel = Financement;
+        if(!ui->activRappelFin->isChecked())
+            rappel = Aucun;
+    }
+
 
     //Move files
     QSqlQuery req;
@@ -233,7 +248,8 @@ void MainWindow::Save_Client()
                      doc,
                      ui->commentaire->toPlainText(),
                      ui->engReprise->text().toInt(),
-                     ui->id->text().toInt());
+                     ui->id->text().toInt(),
+                     rappel);
     if(!result) {
         QMessageBox::warning(this, "Erreur", "Echec d'ajout dans la base de données !");
         return;
@@ -319,6 +335,11 @@ void MainWindow::EditClient(int id)
 {
     Reload();
 
+    ui->activRappelFin->setEnabled(false);
+    ui->activRappelLiv->setEnabled(false);
+
+    ui->comboRappelFin->setCurrentIndex(0);//repassage en jour
+
     QSqlQuery request;
     request.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
 
@@ -352,6 +373,15 @@ void MainWindow::EditClient(int id)
         ui->commentaire->setPlainText(request.value("commentaire").toString());
 
         ui->tabWidget->setTabText(2, ui->name->text() + " " + ui->surname->text());
+
+        //set state rappel
+        if(request.value("rappel").toInt() == Financement) {
+            ui->activRappelLiv->setChecked(false);
+        }
+        else if(request.value("rappel").toInt() == Aucun) {
+            ui->activRappelLiv->setChecked(false);
+            ui->activRappelFin->setChecked(false);
+        }
 
         //documents
         QStringList doc = request.value("documents").toString().split(";");
@@ -443,6 +473,10 @@ void MainWindow::Clear()
     ui->inRappelLiv->setValue(0);
     ui->comboRappelFin->setCurrentIndex(1);
     ui->comboRappelLiv->setCurrentIndex(0);
+    ui->activRappelFin->setChecked(true);
+    ui->activRappelLiv->setChecked(true);
+    ui->activRappelFin->setEnabled(true);
+    ui->activRappelLiv->setEnabled(true);
 
     while(ui->mainTable->rowCount() > 0)
         ui->mainTable->removeRow(0);
