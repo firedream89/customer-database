@@ -74,7 +74,7 @@ bool database::init()
 
 bool database::update_Client(QString nom, QString prenom, QString phone, QString email, QString car_purchased, QString car_reprossessed,
                              QDate date_livraison_initial, QDate date_livraison_prevu, QDate rappel_livraison, QString type_financement,
-                             int duree_financement, QDate rappel_financement, QString documents, QString commentaire, int eng_reprise, int id)
+                             int duree_financement, QDate rappel_financement, QString documents, QString commentaire, int eng_reprise, int id, int rappel = 0)
 {
     if(nom.isEmpty() || prenom.isEmpty() || phone.isEmpty() || email.isEmpty() || car_purchased.isEmpty())
         return false;
@@ -120,7 +120,7 @@ bool database::update_Client(QString nom, QString prenom, QString phone, QString
                 "'" + documents + "',"
                 "'" + commentaire + "',"
                 "'" + QString::number(eng_reprise) + "',"
-                "'0')";//Rappel
+                "'" + QString::number(rappel) + "')";
     }
     return query.exec(request);
 }
