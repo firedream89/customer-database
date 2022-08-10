@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->searchEdit, &QLineEdit::textEdited, this, &MainWindow::Search);
     connect(ui->tableDocuments, &QTableWidget::cellDoubleClicked, this, &MainWindow::ShowDoc);
     connect(ui->activRappelLiv, &QCheckBox::stateChanged, this, &MainWindow::ActivateRappelFin);
+    connect(ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::CloseTab);
 }
 
 MainWindow::~MainWindow()
@@ -129,6 +130,12 @@ void MainWindow::ActivateRappelFin(int checkState)
 {
     if(checkState)
         ui->activRappelFin->setChecked(true);
+}
+
+void MainWindow::CloseTab(int tab)
+{
+    if(tab > 1)
+        ui->tabWidget->setTabVisible(tab, false);
 }
 
 void MainWindow::Save_Client()
@@ -321,8 +328,6 @@ void MainWindow::New()
 
     ui->tabWidget->setCurrentIndex(2);
     ui->tabWidget->setTabVisible(2, true);
-
-
 }
 
 void MainWindow::UpdateCalendar()
