@@ -544,6 +544,11 @@ void MainWindow::Search(QString word)
 
 void MainWindow::AddDocuments()
 {
+    while(ui->tableDocuments->rowCount() > 0) {
+        //reinterpret_cast<QComboBox*>(ui->tableDocuments->item(0,1))->deleteLater();
+        ui->tableDocuments->removeRow(0);
+    }
+
     QDir dir(docFilePath);
     QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
 
