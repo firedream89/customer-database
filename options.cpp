@@ -34,9 +34,9 @@ void Options::Init()
     }
 
     if(settings.value("linkFolder").toString().isEmpty())
-        settings.setValue("linkFolder", QDir::homePath() + "/Documents/DB_Client/");
+        settings.setValue("linkFolder", QDir::homePath() + "/Documents/DB_Clients/");
     if(settings.value("linkDB").toString().isEmpty())
-        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Client/");
+        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Clients/");
 
     ui->empFolder->setText(settings.value("linkFolder").toString().replace("DB_Clients",""));
     ui->empBDD->setText(settings.value("linkDB").toString().replace("DB_Clients",""));
