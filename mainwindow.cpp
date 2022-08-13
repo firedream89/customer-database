@@ -483,6 +483,7 @@ void MainWindow::Clear()
     ui->activRappelLiv->setChecked(true);
     ui->activRappelFin->setEnabled(true);
     ui->activRappelLiv->setEnabled(true);
+    ui->engReprise->clear();
 
     while(ui->mainTable->rowCount() > 0)
         ui->mainTable->removeRow(0);
