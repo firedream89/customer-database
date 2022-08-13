@@ -296,6 +296,7 @@ void MainWindow::Save_Client()
 
     Clear();
     UpdateTable();
+    RappelProcess();
     ui->tabWidget->setCurrentIndex(0);
 }
 
