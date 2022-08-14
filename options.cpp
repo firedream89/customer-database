@@ -102,7 +102,7 @@ void Options::Save()
     }
     id = database::Get_Last_Id()+1;
     req.exec("DELETE FROM Options WHERE Nom='duree_Financement'");
-    for(int i = 0; i < ui->listFin->count(); i++) {
+    for(int i = 0; i < ui->listDuree->count(); i++) {
         req.exec(QString("INSERT INTO Options VALUES('%1','duree_Financement','%2')").arg(QString::number(id), ui->listDuree->item(i)->text()));
     }
     this->accept();
