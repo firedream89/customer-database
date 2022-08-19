@@ -49,6 +49,7 @@ bool database::init()
     query.exec("ALTER TABLE Clients ADD 'societe' TEXT");
     query.exec("ALTER TABLE Clients ADD 'kbis' TEXT");
 
+
     query.prepare("CREATE TABLE Options ('ID' SMALLINT, 'Nom' TEXT, 'Valeur' TEXT)");
     if(query.exec())
     {

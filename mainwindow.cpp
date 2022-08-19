@@ -249,7 +249,7 @@ void MainWindow::Save_Client()
     }
 
     //Ajout DB
-    bool result = db.update_Client(ui->name->text(),
+    bool result = db.update_Client(ui->name->text().toUpper(),
                      ui->surname->text(),
                      ui->phone->text(),
                      ui->email->text(),
@@ -266,7 +266,7 @@ void MainWindow::Save_Client()
                      ui->engReprise->text().toInt(),
                      ui->id->text().toInt(),
                      rappel,
-                     ui->Societe->text(),
+                     ui->Societe->text().toUpper(),
                      ui->kbis->text());
     if(!result) {
         QMessageBox::warning(this, "Erreur", "Echec d'ajout dans la base de données !");
@@ -450,7 +450,7 @@ void MainWindow::UpdateTable()
     while(query.next()) {
         ui->mainTable->insertRow(0);
         ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
-        ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString()));
+        ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString().toUpper()));
         ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
         ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
         ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
@@ -547,7 +547,7 @@ void MainWindow::Search(QString word)
                 query.value("kbis").toString().toUpper().contains(word.toUpper())) {
             ui->mainTable->insertRow(0);
             ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
-            ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString()));
+            ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString().toUpper()));
             ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
             ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
             ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
@@ -668,7 +668,7 @@ void MainWindow::RappelProcess()
         foreach (QString rappel, typeRappel) {
             ui->rappelTable->insertRow(0);
             ui->rappelTable->setItem(0, 0, new QTableWidgetItem(test.value("ID").toString()));
-            ui->rappelTable->setItem(0, 1, new QTableWidgetItem(test.value("nom").toString()));
+            ui->rappelTable->setItem(0, 1, new QTableWidgetItem(test.value("nom").toString().toUpper()));
             ui->rappelTable->setItem(0, 2, new QTableWidgetItem(test.value("prenom").toString()));
             ui->rappelTable->setItem(0, 3, new QTableWidgetItem(test.value("phone").toString()));
             ui->rappelTable->setItem(0, 4, new QTableWidgetItem(test.value("car_Purchased").toString()));
