@@ -675,6 +675,9 @@ void MainWindow::ShowDoc(int row, int column)
     QPdfDocument *pdf = new QPdfDocument;
     pdf->load(link);
     QPdfView *view = ui->new_client->findChild<QPdfView*>("pdfviewer");
+    //view->setMinimumWidth(view->width() + 250);
+    if(!this->isMaximized() && !view->isVisible())
+        this->setMinimumWidth(this->width() + view->width() + 200);
     if(!view) {
         warning("Ouverture du pdf échoué !");
         return;

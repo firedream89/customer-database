@@ -180,15 +180,14 @@
         <string>Nouveau</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="1" column="2">
-         <widget class="QPushButton" name="newBt">
-          <property name="text">
-           <string>Enregistrer</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" colspan="2">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
+        <item row="0" column="0" colspan="2">
          <layout class="QFormLayout" name="formLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_13">
             <property name="text">
@@ -212,6 +211,12 @@
           </item>
           <item row="1" column="1">
            <widget class="QLineEdit" name="name">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>300</height>
+             </size>
+            </property>
             <property name="inputMethodHints">
              <set>Qt::ImhPreferUppercase</set>
             </property>
@@ -225,7 +230,14 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLineEdit" name="surname"/>
+           <widget class="QLineEdit" name="surname">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_5">
@@ -235,7 +247,14 @@
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLineEdit" name="phone"/>
+           <widget class="QLineEdit" name="phone">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_6">
@@ -245,7 +264,14 @@
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QLineEdit" name="email"/>
+           <widget class="QLineEdit" name="email">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item row="5" column="0">
            <widget class="QLabel" name="label_2">
@@ -255,7 +281,14 @@
            </widget>
           </item>
           <item row="5" column="1">
-           <widget class="QLineEdit" name="carPurchased"/>
+           <widget class="QLineEdit" name="carPurchased">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item row="6" column="0">
            <widget class="QLabel" name="label_8">
@@ -263,9 +296,6 @@
              <string>Véhicule repris</string>
             </property>
            </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QLineEdit" name="carReprossessed"/>
           </item>
           <item row="7" column="0">
            <widget class="QLabel" name="label">
@@ -278,6 +308,12 @@
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QGroupBox" name="groupBox_2">
+              <property name="maximumSize">
+               <size>
+                <width>350</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="title">
                <string>Initial</string>
               </property>
@@ -318,6 +354,12 @@
             </item>
             <item>
              <widget class="QGroupBox" name="groupBox_3">
+              <property name="maximumSize">
+               <size>
+                <width>350</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="title">
                <string>Livraison</string>
               </property>
@@ -358,6 +400,56 @@
             </item>
            </layout>
           </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="text">
+             <string>Rappel livraison</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QSpinBox" name="inRappelLiv">
+              <property name="maximum">
+               <number>9999</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboRappelLiv">
+              <item>
+               <property name="text">
+                <string>Jours</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Mois</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Années</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
           <item row="10" column="0">
            <widget class="QLabel" name="label_9">
             <property name="text">
@@ -366,7 +458,14 @@
            </widget>
           </item>
           <item row="10" column="1">
-           <widget class="QComboBox" name="financement"/>
+           <widget class="QComboBox" name="financement">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item row="11" column="0">
            <widget class="QLabel" name="label_10">
@@ -376,72 +475,12 @@
            </widget>
           </item>
           <item row="11" column="1">
-           <widget class="QComboBox" name="repaymentPeriod"/>
-          </item>
-          <item row="15" column="1">
-           <widget class="QGroupBox" name="groupBox">
-            <property name="title">
-             <string>Documents</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_5">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_11">
-               <property name="text">
-                <string>Nombres de documents</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLabel" name="nbDocuments">
-               <property name="text">
-                <string>0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QPushButton" name="newDocumentBt">
-               <property name="text">
-                <string>Scanner</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0" colspan="3">
-              <widget class="QTableWidget" name="tableDocuments">
-               <property name="alternatingRowColors">
-                <bool>true</bool>
-               </property>
-               <column>
-                <property name="text">
-                 <string>Nom</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Type</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="16" column="0">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Commentaire</string>
-            </property>
-           </widget>
-          </item>
-          <item row="16" column="1">
-           <widget class="QPlainTextEdit" name="commentaire"/>
-          </item>
-          <item row="13" column="1">
-           <widget class="QLineEdit" name="engReprise"/>
-          </item>
-          <item row="13" column="0">
-           <widget class="QLabel" name="label_15">
-            <property name="text">
-             <string>Reprise au solde</string>
+           <widget class="QComboBox" name="repaymentPeriod">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -498,72 +537,106 @@
             </item>
            </layout>
           </item>
-          <item row="9" column="0">
-           <widget class="QLabel" name="label_16">
+          <item row="13" column="0">
+           <widget class="QLabel" name="label_15">
             <property name="text">
-             <string>Rappel livraison</string>
+             <string>Reprise au solde</string>
             </property>
            </widget>
           </item>
-          <item row="9" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QSpinBox" name="inRappelLiv">
-              <property name="maximum">
-               <number>9999</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="comboRappelLiv">
-              <item>
+          <item row="13" column="1">
+           <widget class="QLineEdit" name="engReprise">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="15" column="1">
+           <widget class="QGroupBox" name="groupBox">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Documents</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_5">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>Jours</string>
+                <string>Nombres de documents</string>
                </property>
-              </item>
-              <item>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="nbDocuments">
                <property name="text">
-                <string>Mois</string>
+                <string>0</string>
                </property>
-              </item>
-              <item>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="newDocumentBt">
                <property name="text">
-                <string>Années</string>
+                <string>Scanner</string>
                </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="3">
+              <widget class="QTableWidget" name="tableDocuments">
+               <property name="alternatingRowColors">
+                <bool>true</bool>
+               </property>
+               <column>
+                <property name="text">
+                 <string>Nom</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Type</string>
+                </property>
+               </column>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="16" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Commentaire</string>
+            </property>
+           </widget>
+          </item>
+          <item row="16" column="1">
+           <widget class="QPlainTextEdit" name="commentaire">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="carReprossessed">
+            <property name="maximumSize">
+             <size>
+              <width>700</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
-        <item row="0" column="3">
-         <spacer name="horizontalSpacer_5">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="1" column="1">
+        <item row="1" column="0">
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -576,18 +649,12 @@
           </property>
          </spacer>
         </item>
-        <item row="0" column="0">
-         <spacer name="horizontalSpacer_6">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="newBt">
+          <property name="text">
+           <string>Enregistrer</string>
           </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
+         </widget>
         </item>
        </layout>
       </widget>
