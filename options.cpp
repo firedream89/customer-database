@@ -34,9 +34,9 @@ void Options::Init()
     }
 
     if(settings.value("linkFolder").toString().isEmpty())
-        settings.setValue("linkFolder", QDir::homePath() + "/Documents/DB_Client/");
+        settings.setValue("linkFolder", QDir::homePath() + "/Documents/DB_Clients/");
     if(settings.value("linkDB").toString().isEmpty())
-        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Client/");
+        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Clients/");
 
     ui->empFolder->setText(settings.value("linkFolder").toString().replace("DB_Clients",""));
     ui->empBDD->setText(settings.value("linkDB").toString().replace("DB_Clients",""));
@@ -102,7 +102,7 @@ void Options::Save()
     }
     id = database::Get_Last_Id()+1;
     req.exec("DELETE FROM Options WHERE Nom='duree_Financement'");
-    for(int i = 0; i < ui->listFin->count(); i++) {
+    for(int i = 0; i < ui->listDuree->count(); i++) {
         req.exec(QString("INSERT INTO Options VALUES('%1','duree_Financement','%2')").arg(QString::number(id), ui->listDuree->item(i)->text()));
     }
     this->accept();

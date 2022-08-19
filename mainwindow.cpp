@@ -296,6 +296,7 @@ void MainWindow::Save_Client()
 
     Clear();
     UpdateTable();
+    RappelProcess();
     ui->tabWidget->setCurrentIndex(0);
 }
 
@@ -482,6 +483,7 @@ void MainWindow::Clear()
     ui->activRappelLiv->setChecked(true);
     ui->activRappelFin->setEnabled(true);
     ui->activRappelLiv->setEnabled(true);
+    ui->engReprise->clear();
 
     while(ui->mainTable->rowCount() > 0)
         ui->mainTable->removeRow(0);
@@ -544,6 +546,11 @@ void MainWindow::Search(QString word)
 
 void MainWindow::AddDocuments()
 {
+    while(ui->tableDocuments->rowCount() > 0) {
+        //reinterpret_cast<QComboBox*>(ui->tableDocuments->item(0,1))->deleteLater();
+        ui->tableDocuments->removeRow(0);
+    }
+
     QDir dir(docFilePath);
     QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
 
