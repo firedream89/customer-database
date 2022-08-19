@@ -50,7 +50,7 @@ void ShowClient::SetValues(QSqlQuery request)
 {
     if(request.next()) {
         ui->id->setText(request.value("ID").toString());
-        ui->name->setText(request.value("nom").toString());
+        ui->name->setText(request.value("nom").toString().toUpper());
         ui->surname->setText(request.value("prenom").toString());
         ui->phone->setText(request.value("phone").toString());
         ui->email->setText(request.value("email").toString());
@@ -64,6 +64,8 @@ void ShowClient::SetValues(QSqlQuery request)
         ui->engReprise->setText(request.value("eng_Reprise").toString() + "€");
         ui->rappelLiv->setText(request.value("rappel_Livraison").toDate().toString("dd-MM-yyyy"));
         ui->rappelFin->setText(request.value("rappel_Financement").toDate().toString("dd-MM-yyyy"));
+        ui->societe->setText(request.value("societe").toString().toUpper());
+        ui->kbis->setText(request.value("kbis").toString());
 
 
         ui->infoRappel->setText(InfoRappelToStr(request.value("rappel").toInt()));

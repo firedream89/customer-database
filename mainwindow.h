@@ -49,6 +49,7 @@ public:
     void ShowDoc(int row, int column);
     void ActivateRappelFin(int checkState);
     void CloseTab(int tab);
+    void TogglePro(bool checked);
 
 private:
     void ResizeTableColumns(QTableWidget *table);

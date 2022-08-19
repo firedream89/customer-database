@@ -46,7 +46,10 @@ bool database::init()
                   "'eng_Reprise' SMALLINT, "
                   "'rappel' SMALLINT)");
     query.exec();
-    query.clear();
+    query.exec("ALTER TABLE Clients ADD 'societe' TEXT");
+    query.exec("ALTER TABLE Clients ADD 'kbis' TEXT");
+
+
     query.prepare("CREATE TABLE Options ('ID' SMALLINT, 'Nom' TEXT, 'Valeur' TEXT)");
     if(query.exec())
     {
@@ -74,7 +77,8 @@ bool database::init()
 
 bool database::update_Client(QString nom, QString prenom, QString phone, QString email, QString car_purchased, QString car_reprossessed,
                              QDate date_livraison_initial, QDate date_livraison_prevu, QDate rappel_livraison, QString type_financement,
-                             int duree_financement, QDate rappel_financement, QString documents, QString commentaire, int eng_reprise, int id, int rappel = 0)
+                             int duree_financement, QDate rappel_financement, QString documents, QString commentaire, int eng_reprise,
+                             int id, int rappel = 0, QString societe = "", QString kbis = "")
 {
     if(nom.isEmpty() || prenom.isEmpty() || phone.isEmpty() || email.isEmpty() || car_purchased.isEmpty())
         return false;
@@ -99,7 +103,9 @@ bool database::update_Client(QString nom, QString prenom, QString phone, QString
                 "rappel_Financement='" + rappel_financement.toString("yyyy-MM-dd") + "',"
                 "documents='" + documents + "',"
                 "commentaire='" + commentaire + "', "
-                "eng_Reprise='" + QString::number(eng_reprise) + "' "
+                "eng_Reprise='" + QString::number(eng_reprise) + "', "
+                "societe='" + societe + "', "
+                "kbis='" + kbis + "' "
                 "WHERE ID='" + QString::number(id) + "'";
     }
     else {
@@ -120,7 +126,9 @@ bool database::update_Client(QString nom, QString prenom, QString phone, QString
                 "'" + documents + "',"
                 "'" + commentaire + "',"
                 "'" + QString::number(eng_reprise) + "',"
-                "'" + QString::number(rappel) + "')";
+                "'" + QString::number(rappel) + "',"
+                "'" + societe + "',"
+                "'" + kbis + "')";
     }
     return query.exec(request);
 }

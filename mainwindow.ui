@@ -256,54 +256,54 @@
           <item row="2" column="1">
            <widget class="QLineEdit" name="surname"/>
           </item>
-          <item row="3" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_5">
             <property name="text">
              <string>Téléphone</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="6" column="1">
            <widget class="QLineEdit" name="phone"/>
           </item>
-          <item row="4" column="0">
+          <item row="7" column="0">
            <widget class="QLabel" name="label_6">
             <property name="text">
              <string>email</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item row="7" column="1">
            <widget class="QLineEdit" name="email"/>
           </item>
-          <item row="5" column="0">
+          <item row="8" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
              <string>Véhicule acheté</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="8" column="1">
            <widget class="QLineEdit" name="carPurchased"/>
           </item>
-          <item row="6" column="0">
+          <item row="9" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
              <string>Véhicule repris</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="9" column="1">
            <widget class="QLineEdit" name="carReprossessed"/>
           </item>
-          <item row="7" column="0">
+          <item row="10" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Commande</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="10" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QGroupBox" name="groupBox_2">
@@ -387,27 +387,27 @@
             </item>
            </layout>
           </item>
-          <item row="10" column="0">
+          <item row="13" column="0">
            <widget class="QLabel" name="label_9">
             <property name="text">
              <string>Type de financement</string>
             </property>
            </widget>
           </item>
-          <item row="10" column="1">
+          <item row="13" column="1">
            <widget class="QComboBox" name="financement"/>
           </item>
-          <item row="11" column="0">
+          <item row="14" column="0">
            <widget class="QLabel" name="label_10">
             <property name="text">
              <string>Durée du financement</string>
             </property>
            </widget>
           </item>
-          <item row="11" column="1">
+          <item row="14" column="1">
            <widget class="QComboBox" name="repaymentPeriod"/>
           </item>
-          <item row="15" column="1">
+          <item row="18" column="1">
            <widget class="QGroupBox" name="groupBox">
             <property name="title">
              <string>Documents</string>
@@ -454,34 +454,34 @@
             </layout>
            </widget>
           </item>
-          <item row="16" column="0">
+          <item row="19" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
              <string>Commentaire</string>
             </property>
            </widget>
           </item>
-          <item row="16" column="1">
+          <item row="19" column="1">
            <widget class="QPlainTextEdit" name="commentaire"/>
           </item>
-          <item row="13" column="1">
+          <item row="16" column="1">
            <widget class="QLineEdit" name="engReprise"/>
           </item>
-          <item row="13" column="0">
+          <item row="16" column="0">
            <widget class="QLabel" name="label_15">
             <property name="text">
              <string>Reprise au solde</string>
             </property>
            </widget>
           </item>
-          <item row="12" column="0">
+          <item row="15" column="0">
            <widget class="QLabel" name="label_14">
             <property name="text">
              <string>Rappel fin de financement</string>
             </property>
            </widget>
           </item>
-          <item row="12" column="1">
+          <item row="15" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <widget class="QCheckBox" name="activRappelFin">
@@ -537,14 +537,14 @@
             </item>
            </layout>
           </item>
-          <item row="9" column="0">
+          <item row="12" column="0">
            <widget class="QLabel" name="label_16">
             <property name="text">
              <string>Rappel livraison</string>
             </property>
            </widget>
           </item>
-          <item row="9" column="1">
+          <item row="12" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QCheckBox" name="activRappelLiv">
@@ -596,6 +596,33 @@
              </spacer>
             </item>
            </layout>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="activPro">
+            <property name="text">
+             <string>Professionnel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="Societe"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="labelSociete">
+            <property name="text">
+             <string>Société</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="kbis"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="labelKbis">
+            <property name="text">
+             <string>Kbis</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
