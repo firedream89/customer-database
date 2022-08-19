@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->tableDocuments, &QTableWidget::cellDoubleClicked, this, &MainWindow::ShowDoc);
     connect(ui->activRappelLiv, &QCheckBox::stateChanged, this, &MainWindow::ActivateRappelFin);
     connect(ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::CloseTab);
+    connect(ui->activPro, &QCheckBox::toggled, this, &MainWindow::TogglePro);
 }
 
 MainWindow::~MainWindow()
@@ -136,6 +137,14 @@ void MainWindow::CloseTab(int tab)
 {
     if(tab > 1)
         ui->tabWidget->setTabVisible(tab, false);
+}
+
+void MainWindow::TogglePro(bool checked)
+{
+    ui->labelSociete->setVisible(checked);
+    ui->labelKbis->setVisible(checked);
+    ui->Societe->setVisible(checked);
+    ui->kbis->setVisible(checked);
 }
 
 void MainWindow::Save_Client()
@@ -256,7 +265,9 @@ void MainWindow::Save_Client()
                      ui->commentaire->toPlainText(),
                      ui->engReprise->text().toInt(),
                      ui->id->text().toInt(),
-                     rappel);
+                     rappel,
+                     ui->Societe->text(),
+                     ui->kbis->text());
     if(!result) {
         QMessageBox::warning(this, "Erreur", "Echec d'ajout dans la base de données !");
         return;
@@ -302,9 +313,12 @@ void MainWindow::Save_Client()
 
 void MainWindow::Show_Client(int row)
 {
-    int id = ui->mainTable->item(row, 0)->text().toInt();
-    if(ui->tabWidget->currentIndex() == 1)
+    int id = 0;
+    if(ui->tabWidget->currentIndex() == 0)
+        id = ui->mainTable->item(row, 0)->text().toInt();
+    else
         id = ui->rappelTable->item(row, 0)->text().toInt();
+
     ShowClient *client = new ShowClient(this, id);
     client->show();
 
@@ -379,6 +393,12 @@ void MainWindow::EditClient(int id)
         ui->commentaire->setPlainText(request.value("commentaire").toString());
 
         ui->tabWidget->setTabText(2, ui->name->text() + " " + ui->surname->text());
+
+        //pro
+        ui->Societe->setText(request.value("societe").toString());
+        ui->kbis->setText(request.value("kbis").toString());
+        if(!ui->Societe->text().isEmpty() || !ui->kbis->text().isEmpty())
+            ui->activPro->setChecked(true);
 
         //set state rappel
         if(request.value("rappel").toInt() == Financement) {
@@ -485,6 +505,11 @@ void MainWindow::Clear()
     ui->activRappelLiv->setEnabled(true);
     ui->engReprise->clear();
 
+    TogglePro(false);
+    ui->activPro->setChecked(false);
+    ui->Societe->clear();
+    ui->kbis->clear();
+
     while(ui->mainTable->rowCount() > 0)
         ui->mainTable->removeRow(0);
     while(ui->tableDocuments->rowCount() > 0)
@@ -517,7 +542,9 @@ void MainWindow::Search(QString word)
 
     while(query.next()) {
         if(query.value("nom").toString().toUpper().contains(word.toUpper()) || query.value("prenom").toString().toUpper().contains(word.toUpper()) ||
-                query.value("car_Purchased").toString().toUpper().contains(word.toUpper()) || RappelToStr(query.value("rappel").toInt()).toUpper().contains(word.toUpper())) {
+                query.value("car_Purchased").toString().toUpper().contains(word.toUpper()) || RappelToStr(query.value("rappel").toInt()).toUpper().contains(word.toUpper()) ||
+                query.value("phone").toString().contains(word) || query.value("societe").toString().toUpper().contains(word.toUpper()) ||
+                query.value("kbis").toString().toUpper().contains(word.toUpper())) {
             ui->mainTable->insertRow(0);
             ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
             ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString()));

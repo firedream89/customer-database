@@ -64,6 +64,8 @@ void ShowClient::SetValues(QSqlQuery request)
         ui->engReprise->setText(request.value("eng_Reprise").toString() + "€");
         ui->rappelLiv->setText(request.value("rappel_Livraison").toDate().toString("dd-MM-yyyy"));
         ui->rappelFin->setText(request.value("rappel_Financement").toDate().toString("dd-MM-yyyy"));
+        ui->societe->setText(request.value("societe").toString());
+        ui->kbis->setText(request.value("kbis").toString());
 
 
         ui->infoRappel->setText(InfoRappelToStr(request.value("rappel").toInt()));
