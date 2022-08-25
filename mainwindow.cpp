@@ -9,7 +9,7 @@ enum rappel_State {
     Aucun
 };
 
-QString appVersion = "1.0-beta4";
+QString appVersion = "1.0-beta5";
 
 QString RappelToStr(int rappel)
 {
