@@ -34,12 +34,12 @@ void Options::Init()
     }
 
     if(settings.value("linkFolder").toString().isEmpty())
-        settings.setValue("linkFolder", QDir::homePath() + "/Documents/DB_Client/");
+        settings.setValue("linkFolder", QDir::homePath() + "/Documents/DB_Clients/");
     if(settings.value("linkDB").toString().isEmpty())
-        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Client/");
+        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Clients/");
 
-    ui->empFolder->setText(settings.value("linkFolder").toString().replace("DB_Clients",""));
-    ui->empBDD->setText(settings.value("linkDB").toString().replace("DB_Clients",""));
+    ui->empFolder->setText(settings.value("linkFolder").toString().replace("/DB_Clients",""));
+    ui->empBDD->setText(settings.value("linkDB").toString().replace("/DB_Clients",""));
 
     ui->listFin->setDragEnabled(true);
     ui->listFin->setDragDropMode(QAbstractItemView::InternalMove);
@@ -91,8 +91,8 @@ void Options::Save()
     QSqlQuery req;
 
     QSettings settings("DB_Clients","DB_Clients");
-    settings.setValue("linkFolder", ui->empFolder->text() + "DB_Clients");
-    settings.setValue("linkDB", ui->empBDD->text() + "DB_Clients");
+    settings.setValue("linkFolder", ui->empFolder->text() + "/DB_Clients");
+    settings.setValue("linkDB", ui->empBDD->text() + "/DB_Clients");
 
 
     int id = database::Get_Last_Id()+1;
@@ -102,7 +102,7 @@ void Options::Save()
     }
     id = database::Get_Last_Id()+1;
     req.exec("DELETE FROM Options WHERE Nom='duree_Financement'");
-    for(int i = 0; i < ui->listFin->count(); i++) {
+    for(int i = 0; i < ui->listDuree->count(); i++) {
         req.exec(QString("INSERT INTO Options VALUES('%1','duree_Financement','%2')").arg(QString::number(id), ui->listDuree->item(i)->text()));
     }
     this->accept();
@@ -111,11 +111,11 @@ void Options::Save()
 void Options::GetFileLink()
 {
     QString link = QFileDialog::getExistingDirectory(this);
-    if(qobject_cast<QPushButton*>(sender()) == ui->btLinkFiles) {
+    if(qobject_cast<QPushButton*>(sender()) == ui->btLinkFiles && !link.isEmpty()) {
         ui->empFolder->setText(link);
         ui->empBDD->setText(link);
     }
-    else {
+    else if(!link.isEmpty()) {
         ui->empBDD->setText(link);
     }
 }

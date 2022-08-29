@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 #include "showclient.h"
 #include "options.h"
-#include "ui_showclient.h"
 
 enum rappel_State {
     Tous,
@@ -10,7 +9,7 @@ enum rappel_State {
     Aucun
 };
 
-QString appVersion = "1.0-beta2";
+QString appVersion = "1.0-beta5";
 
 QString RappelToStr(int rappel)
 {
@@ -64,6 +63,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::ResizeTable);
     connect(ui->searchEdit, &QLineEdit::textEdited, this, &MainWindow::Search);
     connect(ui->tableDocuments, &QTableWidget::cellDoubleClicked, this, &MainWindow::ShowDoc);
+    connect(ui->activRappelLiv, &QCheckBox::stateChanged, this, &MainWindow::ActivateRappelFin);
+    connect(ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::CloseTab);
+    connect(ui->activPro, &QCheckBox::toggled, this, &MainWindow::TogglePro);
 }
 
 MainWindow::~MainWindow()
@@ -134,6 +136,26 @@ void MainWindow::warning(QString text)
     QMessageBox::warning(this, "Erreur", text);
 }
 
+void MainWindow::ActivateRappelFin(int checkState)
+{
+    if(checkState)
+        ui->activRappelFin->setChecked(true);
+}
+
+void MainWindow::CloseTab(int tab)
+{
+    if(tab > 1)
+        ui->tabWidget->setTabVisible(tab, false);
+}
+
+void MainWindow::TogglePro(bool checked)
+{
+    ui->labelSociete->setVisible(checked);
+    ui->labelKbis->setVisible(checked);
+    ui->Societe->setVisible(checked);
+    ui->kbis->setVisible(checked);
+}
+
 void MainWindow::Save_Client()
 {
     if(ui->name->text().isEmpty()) {
@@ -198,6 +220,14 @@ void MainWindow::Save_Client()
         rappel_financement = rappel_financement.addYears(value);
     }
 
+    //Set rappel
+    int rappel = Tous;
+    if(!ui->activRappelLiv->isChecked()) {
+        rappel = Financement;
+        if(!ui->activRappelFin->isChecked())
+            rappel = Aucun;
+    }
+
 
     //Move files
     QSqlQuery req;
@@ -228,7 +258,7 @@ void MainWindow::Save_Client()
     }
 
     //Ajout DB
-    bool result = db.update_Client(ui->name->text(),
+    bool result = db.update_Client(ui->name->text().toUpper(),
                      ui->surname->text(),
                      ui->phone->text(),
                      ui->email->text(),
@@ -243,7 +273,10 @@ void MainWindow::Save_Client()
                      doc,
                      ui->commentaire->toPlainText(),
                      ui->engReprise->text().toInt(),
-                     ui->id->text().toInt());
+                     ui->id->text().toInt(),
+                     rappel,
+                     ui->Societe->text().toUpper(),
+                     ui->kbis->text());
     if(!result) {
         QMessageBox::warning(this, "Erreur", "Echec d'ajout dans la base de données !");
         return;
@@ -283,14 +316,18 @@ void MainWindow::Save_Client()
 
     Clear();
     UpdateTable();
+    RappelProcess();
     ui->tabWidget->setCurrentIndex(0);
 }
 
 void MainWindow::Show_Client(int row)
 {
-    int id = ui->mainTable->item(row, 0)->text().toInt();
-    if(ui->tabWidget->currentIndex() == 1)
+    int id = 0;
+    if(ui->tabWidget->currentIndex() == 0)
+        id = ui->mainTable->item(row, 0)->text().toInt();
+    else
         id = ui->rappelTable->item(row, 0)->text().toInt();
+
     ShowClient *client = new ShowClient(this, id);
     client->show();
 
@@ -315,8 +352,6 @@ void MainWindow::New()
 
     ui->tabWidget->setCurrentIndex(2);
     ui->tabWidget->setTabVisible(2, true);
-
-
 }
 
 void MainWindow::UpdateCalendar()
@@ -328,6 +363,11 @@ void MainWindow::UpdateCalendar()
 void MainWindow::EditClient(int id)
 {
     Reload();
+
+    ui->activRappelFin->setEnabled(false);
+    ui->activRappelLiv->setEnabled(false);
+
+    ui->comboRappelFin->setCurrentIndex(0);//repassage en jour
 
     QSqlQuery request;
     request.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
@@ -362,6 +402,21 @@ void MainWindow::EditClient(int id)
         ui->commentaire->setPlainText(request.value("commentaire").toString());
 
         ui->tabWidget->setTabText(2, ui->name->text() + " " + ui->surname->text());
+
+        //pro
+        ui->Societe->setText(request.value("societe").toString());
+        ui->kbis->setText(request.value("kbis").toString());
+        if(!ui->Societe->text().isEmpty() || !ui->kbis->text().isEmpty())
+            ui->activPro->setChecked(true);
+
+        //set state rappel
+        if(request.value("rappel").toInt() == Financement) {
+            ui->activRappelLiv->setChecked(false);
+        }
+        else if(request.value("rappel").toInt() == Aucun) {
+            ui->activRappelLiv->setChecked(false);
+            ui->activRappelFin->setChecked(false);
+        }
 
         //documents
         QStringList doc = request.value("documents").toString().split(";");
@@ -404,7 +459,7 @@ void MainWindow::UpdateTable()
     while(query.next()) {
         ui->mainTable->insertRow(0);
         ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
-        ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString()));
+        ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString().toUpper()));
         ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
         ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
         ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
@@ -451,8 +506,18 @@ void MainWindow::Clear()
     ui->mainTable->hideColumn(0);
     ui->inRappelFin->setValue(0);
     ui->inRappelLiv->setValue(0);
-    ui->comboRappelFin->setCurrentIndex(0);
+    ui->comboRappelFin->setCurrentIndex(1);
     ui->comboRappelLiv->setCurrentIndex(0);
+    ui->activRappelFin->setChecked(true);
+    ui->activRappelLiv->setChecked(true);
+    ui->activRappelFin->setEnabled(true);
+    ui->activRappelLiv->setEnabled(true);
+    ui->engReprise->clear();
+
+    TogglePro(false);
+    ui->activPro->setChecked(false);
+    ui->Societe->clear();
+    ui->kbis->clear();
 
     while(ui->mainTable->rowCount() > 0)
         ui->mainTable->removeRow(0);
@@ -490,10 +555,12 @@ void MainWindow::Search(QString word)
 
     while(query.next()) {
         if(query.value("nom").toString().toUpper().contains(word.toUpper()) || query.value("prenom").toString().toUpper().contains(word.toUpper()) ||
-                query.value("car_Purchased").toString().toUpper().contains(word.toUpper()) || RappelToStr(query.value("rappel").toInt()).toUpper().contains(word.toUpper())) {
+                query.value("car_Purchased").toString().toUpper().contains(word.toUpper()) || RappelToStr(query.value("rappel").toInt()).toUpper().contains(word.toUpper()) ||
+                query.value("phone").toString().contains(word) || query.value("societe").toString().toUpper().contains(word.toUpper()) ||
+                query.value("kbis").toString().toUpper().contains(word.toUpper())) {
             ui->mainTable->insertRow(0);
             ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
-            ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString()));
+            ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString().toUpper()));
             ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
             ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
             ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
@@ -519,6 +586,10 @@ void MainWindow::Search(QString word)
 
 void MainWindow::AddDocuments()
 {
+    while(ui->tableDocuments->rowCount() > 0) {
+        ui->tableDocuments->removeRow(0);
+    }
+
     QDir dir(docFilePath);
     QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
 
@@ -610,7 +681,7 @@ void MainWindow::RappelProcess()
         foreach (QString rappel, typeRappel) {
             ui->rappelTable->insertRow(0);
             ui->rappelTable->setItem(0, 0, new QTableWidgetItem(test.value("ID").toString()));
-            ui->rappelTable->setItem(0, 1, new QTableWidgetItem(test.value("nom").toString()));
+            ui->rappelTable->setItem(0, 1, new QTableWidgetItem(test.value("nom").toString().toUpper()));
             ui->rappelTable->setItem(0, 2, new QTableWidgetItem(test.value("prenom").toString()));
             ui->rappelTable->setItem(0, 3, new QTableWidgetItem(test.value("phone").toString()));
             ui->rappelTable->setItem(0, 4, new QTableWidgetItem(test.value("car_Purchased").toString()));
