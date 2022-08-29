@@ -73,6 +73,35 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::GetUpdateInfo(QNetworkReply *reply)
+{
+    if(!reply) {
+        QNetworkAccessManager *m = new QNetworkAccessManager;
+        connect(m, &QNetworkAccessManager::finished, this, &MainWindow::GetUpdateInfo);
+        m->get(QNetworkRequest(QUrl("https://api.github.com/repos/firedream89/customer-database/releases")));
+    }
+    else if(reply->error() == QNetworkReply::NoError)
+    {
+        QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).array()[2].toObject();
+        DEBUG << "latest version :" << obj.value("tag_name").toString();
+        DEBUG << "is latest :" << (obj.value("tag_name").toString().toUpper() == appVersion.toUpper());
+
+        if(obj.value("tag_name").toString().toUpper() != appVersion.toUpper()) {
+            QString downloadLink = obj.value("assets")[0].toObject().value("browser_download_url").toString();
+            QMessageBox updateBox;
+            updateBox.setTextFormat(Qt::RichText);
+            updateBox.setText(tr("Une mise à jour de l'application est disponible !\n<a href='%1'>Télécharger ici</a>").arg(downloadLink));
+            updateBox.setWindowTitle(tr("Mise à jour disponible"));
+            updateBox.exec();
+            this->setWindowTitle(this->windowTitle() + tr(" - Mise à jour disponible !"));
+        }
+    }
+    else
+    {
+        DEBUG << "Get update error :" << reply->errorString();
+    }
+}
+
 void MainWindow::About()
 {
     QDialog *d = new QDialog(this);
@@ -129,6 +158,8 @@ void MainWindow::Init()
     UpdateTable();
 
     RappelProcess();
+
+    GetUpdateInfo();
 }
 
 void MainWindow::warning(QString text)
