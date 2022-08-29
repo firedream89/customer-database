@@ -141,7 +141,11 @@ int database::Get_Last_Id()
     return query.value(0).toInt();
 }
 
-
+void database::close()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    db.close();
+}
 
 
 
