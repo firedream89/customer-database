@@ -120,7 +120,7 @@ void MainWindow::Init()
     view->setVisible(false);
     QLayout *layout = ui->new_client->layout();
     QGridLayout *l = reinterpret_cast<QGridLayout*>(layout);
-    l->addWidget(view, 0, 3);
+    l->addWidget(view, 0, 2);
 
 
     ui->rappelTable->hideColumn(0);
