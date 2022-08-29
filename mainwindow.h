@@ -9,6 +9,10 @@
 #include <QLabel>
 #include <QFormLayout>
 #include <QDesktopServices>
+#include <QPdfDocument>
+#include <QtPdf>
+#include <QPdfView>
+#include <QGridLayout>
 
 #ifndef DEBUG
     #define DEBUG qDebug()

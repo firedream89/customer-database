@@ -5,6 +5,9 @@
 #include <database.h>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QPdfView>
+#include <QGridLayout>
+#include <QPdfDocument>
 
 namespace Ui {
 class ShowClient;

@@ -111,11 +111,11 @@ void Options::Save()
 void Options::GetFileLink()
 {
     QString link = QFileDialog::getExistingDirectory(this);
-    if(qobject_cast<QPushButton*>(sender()) == ui->btLinkFiles) {
+    if(qobject_cast<QPushButton*>(sender()) == ui->btLinkFiles && !link.isEmpty()) {
         ui->empFolder->setText(link);
         ui->empBDD->setText(link);
     }
-    else {
+    else if(!link.isEmpty()) {
         ui->empBDD->setText(link);
     }
 }
