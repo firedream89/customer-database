@@ -82,7 +82,7 @@ void MainWindow::GetUpdateInfo(QNetworkReply *reply)
     }
     else if(reply->error() == QNetworkReply::NoError)
     {
-        QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).array()[2].toObject();
+        QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).array()[0].toObject();
         DEBUG << "latest version :" << obj.value("tag_name").toString();
         DEBUG << "is latest :" << (obj.value("tag_name").toString().toUpper() == appVersion.toUpper());
 
