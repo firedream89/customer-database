@@ -33,7 +33,15 @@ ShowClient::ShowClient(QWidget *parent, int id) :
     QSqlQuery request;
     request.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
 
-    SetValues(std::move(request));
+    SetValues(std::move(request));  
+
+    QPdfView *view = new QPdfView();
+    view->setPageMode(QPdfView::MultiPage);
+    view->setObjectName("pdfviewer");
+    view->setVisible(false);
+    QLayout *layout = this->layout();
+    QGridLayout *l = reinterpret_cast<QGridLayout*>(layout);
+    l->addWidget(view, 0, 3);
 
     connect(ui->btDelete, &QPushButton::clicked, this, &ShowClient::Delete);
     connect(ui->btClose, &QPushButton::clicked, this, &ShowClient::accept);
@@ -114,9 +122,20 @@ void ShowClient::UpdateClient()
 void ShowClient::ShowDoc(int row, int column)
 {
     QString doc = ui->tableDocuments->item(row,0)->text();
-    QString link = "file:///" + docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc;
-    if(!QDesktopServices::openUrl(QUrl(link, QUrl::TolerantMode)))
-        QMessageBox::warning(this, "Erreur", "Le fichier n'a pas pu être ouvert(manquant ?)");
+    QString link = docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + + "/" + doc;
+
+    QPdfDocument *pdf = new QPdfDocument;
+    pdf->load(link);
+    QPdfView *view = this->findChild<QPdfView*>("pdfviewer");
+
+    if(!this->isMaximized() && !view->isVisible())
+        this->setMinimumWidth(this->width() + view->width() + 200);
+    if(!view) {
+        QMessageBox::warning(this, "Erreur", "Ouverture du pdf échoué !");
+        return;
+    }
+    view->setDocument(pdf);
+    view->setVisible(true);
 }
 
 

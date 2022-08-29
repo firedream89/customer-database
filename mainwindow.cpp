@@ -114,6 +114,15 @@ void MainWindow::Init()
 
     Clear();
 
+    QPdfView *view = new QPdfView();
+    view->setPageMode(QPdfView::MultiPage);
+    view->setObjectName("pdfviewer");
+    view->setVisible(false);
+    QLayout *layout = ui->new_client->layout();
+    QGridLayout *l = reinterpret_cast<QGridLayout*>(layout);
+    l->addWidget(view, 0, 2);
+
+
     ui->rappelTable->hideColumn(0);
     ui->tabWidget->setCurrentIndex(0);
 
@@ -515,6 +524,10 @@ void MainWindow::Clear()
     while(ui->tableDocuments->rowCount() > 0)
         ui->tableDocuments->removeRow(0);
 
+    QPdfView *view = ui->new_client->findChild<QPdfView*>("pdfviewer");
+    if(view)
+        view->setVisible(false);
+
     while(ui->financement->count())
         ui->financement->removeItem(0);
     while(ui->repaymentPeriod->count())
@@ -728,9 +741,20 @@ void MainWindow::UpdateRappel()
 void MainWindow::ShowDoc(int row, int column)
 {
     QString doc = ui->tableDocuments->item(row,0)->text();
-    QString link = "file:///" + docFilePath + "/" + doc;
-    if(!QDesktopServices::openUrl(QUrl(link, QUrl::TolerantMode)))
-        QMessageBox::warning(this, "Erreur", "Le fichier n'a pas pu être ouvert(manquant ?)");
+    QString link = docFilePath + "/" + doc;
+
+    QPdfDocument *pdf = new QPdfDocument;
+    pdf->load(link);
+    QPdfView *view = ui->new_client->findChild<QPdfView*>("pdfviewer");
+
+    if(!this->isMaximized() && !view->isVisible())
+        this->setMinimumWidth(this->width() + view->width() + 200);
+    if(!view) {
+        warning("Ouverture du pdf échoué !");
+        return;
+    }
+    view->setDocument(pdf);
+    view->setVisible(true);
 }
 
 
