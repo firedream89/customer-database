@@ -7,6 +7,8 @@
 #include "database.h"
 #include <QFileDialog>
 #include <QSettings>
+#include <QMessageBox>
+#include <QFileInfo>
 
 namespace Ui {
 class Options;
@@ -24,6 +26,7 @@ public:
     void AddItem();
     void Save();
     void GetFileLink();
+    void RestorationDB();
 
 private:
     Ui::Options *ui;

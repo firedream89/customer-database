@@ -12,6 +12,7 @@ Options::Options(QWidget *parent) :
     connect(ui->btSave, &QPushButton::clicked, this, &Options::Save);
     connect(ui->btLinkFiles, &QPushButton::clicked, this, &Options::GetFileLink);
     connect(ui->btLinkDB, &QPushButton::clicked, this, &Options::GetFileLink);
+    connect(ui->listDBSav, &QListWidget::itemDoubleClicked, this, &Options::RestorationDB);
 }
 
 Options::~Options()
@@ -51,6 +52,11 @@ void Options::Init()
     connect(ui->listDuree, &QListWidget::itemDoubleClicked, this, &Options::RemoveItem);
     connect(ui->btDuree, &QPushButton::clicked, this, &Options::AddItem);
 
+    for(int i = 1; i < 4; i++) {
+        QFileInfo dbInfo(ui->empBDD->text() + QString("/DB_Clients/bdd_Sav%1.sav").arg(i));
+        if(dbInfo.isFile())
+            ui->listDBSav->addItem(dbInfo.lastModified().toString("dd-MM-yyyy hh:mm"));
+    }
 }
 
 void Options::RemoveItem(QListWidgetItem *item)
@@ -119,3 +125,43 @@ void Options::GetFileLink()
         ui->empBDD->setText(link);
     }
 }
+
+void Options::RestorationDB()
+{
+    ui->listDBSav->setEnabled(false);
+    QString date = ui->listDBSav->currentItem()->text();
+    QString dbFile = QString("bdd_Sav%1.sav").arg(ui->listDBSav->currentRow()+1);
+    int ret = QMessageBox::question(this, tr("Restauration base de données"), tr("Voulez vous vraiment restaurez la base de données à la date du %1 ?").arg(date));
+    if(ret == QMessageBox::Yes)
+    {
+        database::close();
+        QString dbLink = ui->empBDD->text() + "/DB_Clients/";
+
+        if(QFile::copy(dbLink + "bdd.db",dbLink + "bdd.old")) {
+            QFile::remove(dbLink + "bdd.db");
+            if(QFile::copy(dbLink + dbFile, dbLink + "bdd.db")) {
+                QFile::remove(dbLink + dbFile);
+                if(QFile::copy(dbLink + "bdd.old", dbLink + dbFile)) {
+                    QMessageBox::information(this, "Base de données restauré", "La base de données à été retauré avec succès !");
+                    QFile::remove(dbLink + "bdd.old");
+                    return;
+                }
+            }
+        }
+        QMessageBox::warning(this, "Restauration échoué", "La base de données n'a pas pu être restauré !");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
