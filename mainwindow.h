@@ -13,6 +13,10 @@
 #include <QtPdf>
 #include <QPdfView>
 #include <QGridLayout>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>()
 
 #ifndef DEBUG
     #define DEBUG qDebug()
@@ -54,6 +58,7 @@ public:
     void ActivateRappelFin(int checkState);
     void CloseTab(int tab);
     void TogglePro(bool checked);
+    void GetUpdateInfo(QNetworkReply *reply = nullptr);
 
 private:
     void ResizeTableColumns(QTableWidget *table);
