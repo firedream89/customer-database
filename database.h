@@ -19,6 +19,8 @@ public:
                        QString type_financement, int duree_financement, QDate rappel_financement, QString documents, QString commentaire, int eng_reprise, int id, int rappel, QString societe, QString kbis);
     static int Get_Last_Id();
     bool init();
+    static void close();
+    void Save();
 
 
 signals:

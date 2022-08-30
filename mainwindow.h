@@ -16,7 +16,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QJsonDocument>
-#include <QJsonObject>()
+#include <QJsonObject>
 
 #ifndef DEBUG
     #define DEBUG qDebug()
