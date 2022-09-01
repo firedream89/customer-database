@@ -2,41 +2,8 @@
 #include "ui_mainwindow.h"
 #include "showclient.h"
 #include "options.h"
+#include "about.h"
 
-enum rappel_State {
-    Tous,
-    Financement,
-    Aucun
-};
-
-QString appVersion = "1.0-beta5";
-
-QString RappelToStr(int rappel)
-{
-    switch (rappel) {
-    case Tous:
-        return "En Commande";
-        break;
-    case Financement:
-        return "Livré";
-        break;
-    default:
-        return "Archive";
-    }
-}
-
-QList<QTableWidgetItem*> SuppressionDoublon(QList<QTableWidgetItem*> items)
-{
-    QList<QTableWidgetItem*> finalList;
-    QList<int> index;
-    foreach (QTableWidgetItem *item, items) {
-       if(!index.contains(item->row())) {
-           finalList.append(item);
-           index.append(item->row());
-       }
-    }
-    return finalList;
-}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -46,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     Init();
 
-    this->setWindowTitle("Database Clients " + appVersion);
+    this->setWindowTitle("Database Clients " + Common::appVersion);
 
     connect(ui->newClientBt, &QPushButton::clicked, this, &MainWindow::New);
     connect(ui->newBt, &QPushButton::clicked, this, &MainWindow::Save_Client);
@@ -57,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btRappelOk, &QPushButton::clicked, this, &MainWindow::UpdateRappel);
     connect(ui->btSendEmail, &QPushButton::clicked, this, &MainWindow::SendEmail);
     connect(ui->actionOptions, &QAction::triggered, this, &MainWindow::Show_Option);
-    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::About);
+    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::ShowAbout);
     connect(ui->originalDeliveryDate, &QCalendarWidget::selectionChanged, this, &MainWindow::UpdateCalendar);
     connect(ui->actionBug_report, &QAction::triggered, this, &MainWindow::Bug_Report);
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::ResizeTable);
@@ -78,19 +45,19 @@ void MainWindow::GetUpdateInfo(QNetworkReply *reply)
     if(!reply) {
         QNetworkAccessManager *m = new QNetworkAccessManager;
         connect(m, &QNetworkAccessManager::finished, this, &MainWindow::GetUpdateInfo);
-        m->get(QNetworkRequest(QUrl("https://api.github.com/repos/firedream89/customer-database/releases")));
+        m->get(QNetworkRequest(QUrl(Common::updateLink)));
     }
     else if(reply->error() == QNetworkReply::NoError)
     {
         QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).array()[0].toObject();
         DEBUG << "latest version :" << obj.value("tag_name").toString();
-        DEBUG << "is latest :" << (obj.value("tag_name").toString().toUpper() == appVersion.toUpper());
+        DEBUG << "is latest :" << (obj.value("tag_name").toString().toUpper() == Common::appVersion.toUpper());
 
-        if(obj.value("tag_name").toString().toUpper() != appVersion.toUpper()) {
+        if(obj.value("tag_name").toString().toUpper() != Common::appVersion.toUpper()) {
             QString downloadLink = obj.value("assets")[0].toObject().value("browser_download_url").toString();
             QMessageBox updateBox;
             updateBox.setTextFormat(Qt::RichText);
-            updateBox.setText(tr("Une mise à jour de l'application est disponible !\n<a href='%1'>Télécharger ici</a>").arg(downloadLink));
+            updateBox.setText(tr("La mise à jour %0 de l'application est disponible !\n<a href='%1'>Télécharger</a>").arg(obj.value("tag_name").toString(), downloadLink));
             updateBox.setWindowTitle(tr("Mise à jour disponible"));
             updateBox.exec();
             this->setWindowTitle(this->windowTitle() + tr(" - Mise à jour disponible !"));
@@ -102,44 +69,16 @@ void MainWindow::GetUpdateInfo(QNetworkReply *reply)
     }
 }
 
-void MainWindow::About()
+void MainWindow::ShowAbout()
 {
-    QDialog *d = new QDialog(this);
-    QFormLayout layout(d);
-    d->setWindowTitle("A propos");
-    QLabel *version = new QLabel(appVersion,d);
-    layout.addRow("Version", version);
-
-    QLabel *author = new QLabel("BRIAND Kévin",d);
-    layout.addRow("Auteur", author);
-
-    QLabel *licence = new QLabel("LGPL-2.1",d);
-    layout.addRow("Licence", licence);
-
-    QLabel *repo = new QLabel("<a href='https://github.com/firedream89/customer-database'>Ouvrir</a>",d);
-    repo->setOpenExternalLinks(true);
-    layout.addRow("Sources", repo);
-
-    QPushButton *Qt = new QPushButton("Info",d);
-    connect(Qt, &QPushButton::clicked, qApp, &QApplication::aboutQt);
-    layout.addRow("Version Qt", Qt);
-
-    d->exec();
+    About d;
+    d.exec();
 }
 
 void MainWindow::Init()
 {
-    QSettings settings("DB_Clients","DB_Clients");
-    if(!settings.value("linkFolder").toString().isEmpty()) {
-        docFilePath = settings.value("linkFolder").toString();
-    }
-
-    QDir dir;
-    dir.mkdir(docFilePath);
-    dir.mkdir(docFilePath + SavedFilePath);
-
-    if(!db.init())
-        QMessageBox::warning(this, "Erreur", "La base données n'a pas pu être ouverte !");
+    if(!common.InitData())
+        QMessageBox::warning(this, tr("Erreur"), tr("La base données n'a pas pu être ouverte !"));
 
     Clear();
 
@@ -164,7 +103,7 @@ void MainWindow::Init()
 
 void MainWindow::warning(QString text)
 {
-    QMessageBox::warning(this, "Erreur", text);
+    QMessageBox::warning(this, tr("Erreur"), text);
 }
 
 void MainWindow::ActivateRappelFin(int checkState)
@@ -259,91 +198,68 @@ void MainWindow::Save_Client()
             rappel = Aucun;
     }
 
+    //if file exist
+    bool copy = true;
+    QStringList listDoc = doc.split(";");
+    for(int i = 0; i < listDoc.count(); i++) {
+        QString doc = listDoc.at(i).split("|").count() == 2 ? listDoc.at(i).split("|").first() : "";
+        if(doc.isEmpty())
+            continue;
 
-    //Move files
-    QSqlQuery req;
-    req.exec("SELECT * FROM Clients WHERE ID='" + ui->id->text() + "'");
-    if(req.next()) {
-        if(ui->name->text() != req.value("nom").toString() || ui->surname->text() != req.value("prenom").toString()) {
-            QDir dir;
-            if(dir.mkpath(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text()) && !doc.isEmpty()) {
-                QStringList listDoc = doc.split(";");
-                bool copyOk = true;
-                foreach(QString file, listDoc) {
-                    if(!QFile::copy(docFilePath + SavedFilePath + req.value("nom").toString() + "_" + req.value("prenom").toString() + "/" + ui->id->text() + "/" + file.split("|").first(),
-                                docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + file.split("|").first())) {
-                        warning(tr("Echec de déplacement du fichier %1!").arg(file.split("|").first()));
-                        copyOk = false;
-                    }
-                    else
-                        QFile::remove(docFilePath + SavedFilePath + req.value("nom").toString() + "_" + req.value("prenom").toString() + "/" + ui->id->text() + "/" + file.split("|").first());
-                }
-                if(copyOk) {
-                    dir.setPath(docFilePath + SavedFilePath + req.value("nom").toString() + "_" + req.value("prenom").toString());
-                    if(!dir.removeRecursively())
-                        warning(tr("Le dossier %1 n'a pas pu être supprimé !").arg(req.value("nom").toString() + "_" + req.value("prenom").toString()));
-                }
-            }
+        QFile f(Common::docFilePath + "/" +  doc);
+        QFile fDest(Common::docFilePath + Common::SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc);
 
+        if(fDest.exists() && f.exists()) {//Si le fichier existe déjà
+            copy = false;
         }
+        if(QMessageBox::question(this, "Remplacement fichier", "Des fichiers existe déjà dans le dossier client, voulez-vous les remplacer ?") == QMessageBox::Yes)
+            copy = true;
     }
 
-    //Ajout DB
-    bool result = db.update_Client(ui->name->text().toUpper(),
-                     ui->surname->text(),
-                     ui->phone->text(),
-                     ui->email->text(),
-                     ui->carPurchased->text(),
-                     ui->carReprossessed->text(),
-                     ui->originalDeliveryDate->selectedDate(),
-                     ui->expectedDeliveryDate->selectedDate(),
-                     rappel_livraison,
-                     ui->financement->currentText(),
-                     ui->repaymentPeriod->currentData().toInt(),
-                     rappel_financement,
-                     doc,
-                     ui->commentaire->toPlainText(),
-                     ui->engReprise->text().toInt(),
-                     ui->id->text().toInt(),
-                     rappel,
-                     ui->Societe->text().toUpper(),
-                     ui->kbis->text());
-    if(!result) {
-        QMessageBox::warning(this, "Erreur", "Echec d'ajout dans la base de données !");
-        return;
-    }
-    else {
-        QDir dir;
-        dir.mkpath(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text());
+    //Ajout data
+    QMap<QString, QVariant> data;
+    data.insert("ID", ui->id->text());
+    data.insert("name", ui->name->text());
+    data.insert("surname", ui->surname->text());
+    data.insert("phone", ui->phone->text());
+    data.insert("email", ui->email->text());
+    data.insert("carPurchased", ui->carPurchased->text());
+    data.insert("carReprossessed", ui->carReprossessed->text());
+    data.insert("originalDeliveryDate", ui->originalDeliveryDate->selectedDate());
+    data.insert("expectedDeliveryDate", ui->expectedDeliveryDate->selectedDate());
+    data.insert("rappelLivraison", rappel_livraison);
+    data.insert("financement", ui->financement->currentText());
+    data.insert("repaymentPeriod", ui->repaymentPeriod->currentData().toInt());
+    data.insert("rappelFinancement", rappel_financement);
+    data.insert("documents", doc);
+    data.insert("commentaire", ui->commentaire->toPlainText());
+    data.insert("engReprise", ui->engReprise->text());
+    data.insert("rappel", rappel);
+    data.insert("societe", ui->Societe->text().toUpper());
+    data.insert("kbis", ui->kbis->text());
+    data.insert("forceCopy", copy);
 
-        QStringList listDoc = doc.split(";");
-        for(int i = 0; i < listDoc.count(); i++) {
-            QString doc = listDoc.at(i).split("|").count() == 2 ? listDoc.at(i).split("|").first() : "";
-            if(doc.isEmpty())
-                continue;
+   int result = common.SaveData(data);
 
-            QFile f(docFilePath + "/" +  doc);
-            QFile fDest(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc);
+   //contrôle erreur
+   QString errorString;
+   switch (result) {
+   case copyFileError:
+       errorString = tr("Echec de la copie d'un fichier !");
+       break;
+   case removeFileError:
+       errorString = tr("Echec de la suppression d'un fichier !");
+       break;
+   case removeFolderError:
+       errorString = tr("Echec de la suppression d'un dossier !");
+       break;
+   case dbRecordError:
+       errorString = tr("Echec de l'enregistrement du client !");
+       break;
+   }
+   if(!errorString.isEmpty())
+       warning(errorString);
 
-            bool copy = true;
-            if(fDest.exists()) {//Si le fichier existe déjà
-                copy = false;
-                if(f.exists() && QMessageBox::question(this, "Remplacement fichier", "Le fichier existe déjà dans le dossier client, voulez-vous le remplacer ?") == QMessageBox::Yes) {
-                    fDest.remove();
-                    copy = true;
-                }
-            }
-
-            if(copy) {
-                if(f.copy(docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc)) {
-                    if(!f.remove())
-                        warning(QString("Le fichier %1 n'a pas pu être supprimé !").arg(doc));
-                }
-                else
-                    warning(QString("Le fichier %1 n'a pas pu être déplacé !").arg(doc));
-            }
-        }
-    }
 
     Clear();
     UpdateTable();
@@ -377,9 +293,9 @@ void MainWindow::New()
 {
     Reload();
 
-    ui->id->setText(QString::number(db.Get_Last_Id()+1));
+    ui->id->setText(QString::number(common.NewCustomer()));
 
-    ui->tabWidget->setTabText(2, "Nouveau");
+    ui->tabWidget->setTabText(2, tr("Nouveau"));
 
     ui->tabWidget->setCurrentIndex(2);
     ui->tabWidget->setTabVisible(2, true);
@@ -400,79 +316,58 @@ void MainWindow::EditClient(int id)
 
     ui->comboRappelFin->setCurrentIndex(0);//repassage en jour
 
-    QSqlQuery request;
-    request.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
+    QMap<QString, QVariant> data = common.GetCustomerInfo(id);
 
-    if(request.next()) {
-        ui->id->setText(request.value("ID").toString());
-        ui->name->setText(request.value("nom").toString());
-        ui->surname->setText(request.value("prenom").toString());
-        ui->phone->setText(request.value("phone").toString());
-        ui->email->setText(request.value("email").toString());
-        ui->carPurchased->setText(request.value("car_Purchased").toString());
-        ui->carReprossessed->setText(request.value("car_Reprossessed").toString());
-        ui->originalDeliveryDate->setSelectedDate(request.value("date_Livraison_Initial").toDate());
-        ui->expectedDeliveryDate->setSelectedDate(request.value("date_Livraison_Prevu").toDate());
+    if(!data.isEmpty()) {
+        ui->id->setText(data.value("ID").toString());
+        ui->name->setText(data.value("name").toString());
+        ui->surname->setText(data.value("surname").toString());
+        ui->phone->setText(data.value("phone").toString());
+        ui->email->setText(data.value("email").toString());
+        ui->carPurchased->setText(data.value("carPurchased").toString());
+        ui->carReprossessed->setText(data.value("carReprossessed").toString());
+        ui->originalDeliveryDate->setSelectedDate(data.value("originalDeliveryDate").toDate());
+        ui->expectedDeliveryDate->setSelectedDate(data.value("expectedDeliveryDate").toDate());
 
-        if(ui->financement->findText(request.value("type_Financement").toString()) == -1)
-            ui->financement->addItem(request.value("type_Financement").toString());
-        ui->financement->setCurrentText(request.value("type_Financement").toString());
+        if(ui->financement->findText(data.value("financement").toString()) == -1)
+            ui->financement->addItem(data.value("financement").toString());
+        ui->financement->setCurrentText(data.value("financement").toString());
 
-        if(ui->repaymentPeriod->findText(request.value("duree_Financement").toString()) == -1)
-            ui->repaymentPeriod->addItem(request.value("duree_Financement").toString() + " mois");
-        ui->repaymentPeriod->setCurrentText(request.value("duree_Financement").toString() + " mois");
+        if(ui->repaymentPeriod->findText(data.value("repaymentPeriod").toString()) == -1)
+            ui->repaymentPeriod->addItem(data.value("repaymentPeriod").toString() + " mois");
+        ui->repaymentPeriod->setCurrentText(data.value("repaymentPeriod").toString() + " mois");
 
-        QDate extract_Rappel = request.value("rappel_Livraison").toDate();
+        QDate extract_Rappel = data.value("rappelLivraison").toDate();
         int days = extract_Rappel.daysTo(ui->expectedDeliveryDate->selectedDate());
         ui->inRappelLiv->setValue(days);
 
-        extract_Rappel = request.value("rappel_Financement").toDate();
-        days = extract_Rappel.daysTo(ui->expectedDeliveryDate->selectedDate().addMonths(request.value("duree_Financement").toInt()));
+        extract_Rappel = data.value("rappelFinancement").toDate();
+        days = extract_Rappel.daysTo(ui->expectedDeliveryDate->selectedDate().addMonths(data.value("repaymentPeriod").toInt()));
         ui->inRappelFin->setValue(days);
 
-        ui->commentaire->setPlainText(request.value("commentaire").toString());
+        ui->commentaire->setPlainText(data.value("commentaire").toString());
 
         ui->tabWidget->setTabText(2, ui->name->text() + " " + ui->surname->text());
 
         //pro
-        ui->Societe->setText(request.value("societe").toString());
-        ui->kbis->setText(request.value("kbis").toString());
+        ui->Societe->setText(data.value("societe").toString());
+        ui->kbis->setText(data.value("kbis").toString());
         if(!ui->Societe->text().isEmpty() || !ui->kbis->text().isEmpty())
             ui->activPro->setChecked(true);
 
         //set state rappel
-        if(request.value("rappel").toInt() == Financement) {
+        if(data.value("rappel").toInt() == Financement) {
             ui->activRappelLiv->setChecked(false);
         }
-        else if(request.value("rappel").toInt() == Aucun) {
+        else if(data.value("rappel").toInt() == Aucun) {
             ui->activRappelLiv->setChecked(false);
             ui->activRappelFin->setChecked(false);
         }
 
-        //documents
-        QStringList doc = request.value("documents").toString().split(";");
-        ui->nbDocuments->setText(QString::number(request.value("documents").toString().isEmpty() ? 0 : doc.count()));
-        if(!request.value("documents").toString().isEmpty()) {
-            for(int i = 0; i < doc.count(); i++) {
-                QComboBox* combo = new QComboBox(ui->tableDocuments);
-                combo->setObjectName(QString::number(i));
-                combo->addItem("");
-                combo->setItemData(0,0);
-                combo->addItem("Fiche force");
-                combo->setItemData(1,1);
-                combo->addItem("Bon de commande");
-                combo->setItemData(2,2);
-                combo->addItem("Fiche de reprise");
-                combo->setItemData(3,3);
-
-
-                ui->tableDocuments->insertRow(0);
-                ui->tableDocuments->setItem(0,0, new QTableWidgetItem(doc.at(i).split("|").first()));
-                ui->tableDocuments->setCellWidget(0, 1, combo);
-                combo->setCurrentText(doc.at(i).split("|").last());
-                ui->tableDocuments->item(0,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-            }
-        }
+        //table documents
+        QStringList documents = !data.value("documents").toString().isEmpty() ? data.value("documents").toString().split(";") : QStringList();
+        ui->nbDocuments->setText(QString::number(documents.isEmpty() ? 0 : documents.count()));
+        common.SetTableDocument(ui->tableDocuments, documents);
 
         ui->tableDocuments->resizeColumnsToContents();
         ui->tabWidget->setTabVisible(2, true);
@@ -483,34 +378,11 @@ void MainWindow::EditClient(int id)
 void MainWindow::UpdateTable()
 {
     Clear();
-     ui->mainTable->setSortingEnabled(false);
+    ui->mainTable->setSortingEnabled(false);
 
-    QSqlQuery query;
-    query.exec("SELECT * FROM Clients");
-    while(query.next()) {
-        ui->mainTable->insertRow(0);
-        ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
-        ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString().toUpper()));
-        ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
-        ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
-        ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
-        ui->mainTable->setItem(0, 5, new QTableWidgetItem(query.value("date_Livraison_Initial").toDate().toString("dd-MM-yyyy")));
-        ui->mainTable->setItem(0, 6, new QTableWidgetItem(RappelToStr(query.value("rappel").toInt())));
+    common.UpdateTable(ui->mainTable);
 
-        QColor color;
-        switch (query.value("rappel").toInt()) {
-        case Tous:
-            color.setRgb(200, 0, 0);
-            break;
-        case Financement:
-            color.setRgb(0, 200, 0);
-            break;
-        default:
-            color.setRgb(0, 0, 200);
-        }
-        ui->mainTable->item(0, ui->mainTable->columnCount()-1)->setForeground(QBrush(color));
-    }
-     ui->mainTable->setSortingEnabled(true);
+    ui->mainTable->setSortingEnabled(true);
 }
 
 void MainWindow::Reload()
@@ -581,70 +453,29 @@ void MainWindow::Search(QString word)
     Clear();
     ui->mainTable->setSortingEnabled(false);
 
-    QSqlQuery query;
-    query.exec("SELECT * FROM Clients");
+    common.UpdateTable(ui->mainTable, word);
 
-    while(query.next()) {
-        if(query.value("nom").toString().toUpper().contains(word.toUpper()) || query.value("prenom").toString().toUpper().contains(word.toUpper()) ||
-                query.value("car_Purchased").toString().toUpper().contains(word.toUpper()) || RappelToStr(query.value("rappel").toInt()).toUpper().contains(word.toUpper()) ||
-                query.value("phone").toString().contains(word) || query.value("societe").toString().toUpper().contains(word.toUpper()) ||
-                query.value("kbis").toString().toUpper().contains(word.toUpper())) {
-            ui->mainTable->insertRow(0);
-            ui->mainTable->setItem(0, 0, new QTableWidgetItem(query.value("ID").toString()));
-            ui->mainTable->setItem(0, 1, new QTableWidgetItem(query.value("nom").toString().toUpper()));
-            ui->mainTable->setItem(0, 2, new QTableWidgetItem(query.value("prenom").toString()));
-            ui->mainTable->setItem(0, 3, new QTableWidgetItem(query.value("phone").toString()));
-            ui->mainTable->setItem(0, 4, new QTableWidgetItem(query.value("car_Purchased").toString()));
-            ui->mainTable->setItem(0, 5, new QTableWidgetItem(query.value("date_Livraison_Initial").toDate().toString("dd-MM-yyyy")));
-            ui->mainTable->setItem(0, 6, new QTableWidgetItem(RappelToStr(query.value("rappel").toInt())));
-
-            QColor color;
-            switch (query.value("rappel").toInt()) {
-            case Tous:
-                color.setRgb(200, 0, 0);
-                break;
-            case Financement:
-                color.setRgb(0, 200, 0);
-                break;
-            default:
-                color.setRgb(0, 0, 200);
-            }
-            ui->mainTable->item(0, ui->mainTable->columnCount()-1)->setForeground(QBrush(color));
-        }
-    }
-     ui->mainTable->setSortingEnabled(true);
+    ui->mainTable->setSortingEnabled(true);
 }
 
 void MainWindow::AddDocuments()
 {
-    while(ui->tableDocuments->rowCount() > 0) {
+    while(ui->tableDocuments->rowCount() > 0) {///BUG EFFACEMENT EN EDIT CLIENT
         ui->tableDocuments->removeRow(0);
     }
 
-    QDir dir(docFilePath);
+    QDir dir(Common::docFilePath);
     QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
 
-    int nbRows = ui->tableDocuments->rowCount();
     ui->nbDocuments->setText(QString::number(list.count()));
-    for(int i = 0; i < list.count(); i++) {
-        QString name = list.at(i).fileName();
-        if(name == "bdd.db")
-            continue;
-        ui->tableDocuments->insertRow(i + nbRows);
-        ui->tableDocuments->setItem(i + nbRows, 0, new QTableWidgetItem(name));
 
-        QComboBox* combo = new QComboBox(ui->tableDocuments);
-        combo->setObjectName(QString::number(i + nbRows));
-        combo->addItem("");
-        combo->setItemData(0,0);
-        combo->addItem("Fiche force");
-        combo->setItemData(1,1);
-        combo->addItem("Bon de commande");
-        combo->setItemData(2,2);
-        combo->addItem("Fiche de reprise");
-        combo->setItemData(3,3);
-        ui->tableDocuments->setCellWidget(i + nbRows, 1, combo);
-    }
+    QStringList documents;
+    for(const QFileInfo &fileInfo : list)
+        documents.append(fileInfo.fileName() + "|;");
+    documents.remove(documents.count()-1, documents.count()-1);
+
+    common.SetTableDocument(ui->tableDocuments, documents);
+
     ui->tableDocuments->resizeColumnsToContents();
 }
 
@@ -689,9 +520,6 @@ void MainWindow::RappelProcess()
     while(ui->rappelTable->rowCount() > 0)
         ui->rappelTable->removeRow(0);
 
-    QDate date = QDate::currentDate();
-    date = date.addDays(_rappel_jours_livraison);
-
     //Livraison
     int rappelLiv = 0;
     int rappelFin = 0;
@@ -725,7 +553,7 @@ void MainWindow::RappelProcess()
 
 void MainWindow::SendEmail()
 {
-    QList<QTableWidgetItem*> items = SuppressionDoublon(ui->rappelTable->selectedItems());
+    QList<QTableWidgetItem*> items = common.SuppressionDoublon(ui->rappelTable->selectedItems());
 
     if(items.count() == 0)
         return;
@@ -745,7 +573,7 @@ void MainWindow::SendEmail()
 
 void MainWindow::UpdateRappel()
 {
-    QList<QTableWidgetItem*> items = SuppressionDoublon(ui->rappelTable->selectedItems());
+    QList<QTableWidgetItem*> items = common.SuppressionDoublon(ui->rappelTable->selectedItems());
 
     if(items.count() > 0 && QMessageBox::question(this,"Validation rappels",QString("Voulez-vous vraiment retirer %1 de la liste de rappel ?").arg(items.count())) == QMessageBox::Yes) {
         for(int i = 0; i < items.count(); i++) {
@@ -769,10 +597,10 @@ void MainWindow::UpdateRappel()
     }
 }
 
-void MainWindow::ShowDoc(int row, int column)
+void MainWindow::ShowDoc(int row)
 {
     QString doc = ui->tableDocuments->item(row,0)->text();
-    QString link = docFilePath + "/" + doc;
+    QString link = Common::docFilePath + "/" + doc;
 
     QPdfDocument *pdf = new QPdfDocument;
     pdf->load(link);

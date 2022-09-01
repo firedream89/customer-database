@@ -177,10 +177,58 @@ qDebug() << file << DBSave.at(0).isNull();
     }
 }
 
+bool database::isIdExist(int id)
+{
+    QSqlQuery req;
+    req.exec("SELECT ID FROM Clients WHERE ID='" + QString::number(id) + "'");
+
+    if(req.next())
+        return true;
+    return false;
+}
+
+QMap<QString, QVariant> database::GetCustomerInfo(int id)
+{
+    QSqlQuery req;
+    req.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
 
 
+    QMap<QString, QVariant> data;
+    if(req.next()) {
 
+        data.insert("ID", req.value("ID"));
+        data.insert("name", req.value("nom"));
+        data.insert("surname", req.value("prenom"));
+        data.insert("phone", req.value("phone"));
+        data.insert("email", req.value("email"));
+        data.insert("carPurchased", req.value("car_Purchased"));
+        data.insert("carReprossessed", req.value("car_Reprossessed"));
+        data.insert("originalDeliveryDate", req.value("date_Livraison_Initial"));
+        data.insert("expectedDeliveryDate", req.value("data_Livraison_Prevu"));
+        data.insert("rappelLivraison", req.value("rappel_Livraison"));
+        data.insert("financement", req.value("type_Financement"));
+        data.insert("repaymentPeriod", req.value("duree_Financement"));
+        data.insert("rappelFinancement", req.value("rappel_Financement"));
+        data.insert("documents", req.value("documents"));
+        data.insert("commentaire", req.value("commentaire"));
+        data.insert("engReprise", req.value("eng_Reprise"));
+        data.insert("rappel", req.value("rappel"));
+        data.insert("societe", req.value("societe"));
+        data.insert("kbis", req.value("kbis"));
+    }
+    return data;
+}
 
+QList<QMap<QString, QVariant>> database::GetAllCustomerInfo()
+{
+    QList<QMap<QString, QVariant>> customerList;
+    QSqlQuery req;
+    req.exec("SELECT ID FROM Clients");
+    while(req.next())
+        customerList.append(GetCustomerInfo(req.value(0).toInt()));
+
+    return customerList;
+}
 
 
 

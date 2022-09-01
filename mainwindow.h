@@ -22,7 +22,7 @@
     #define DEBUG qDebug()
 #endif
 
-#include "database.h"
+#include "common.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -52,9 +52,9 @@ public:
     void Reload();
     void UpdateCalendar();
     void ResizeTable(int tab);
-    void About();
+    void ShowAbout();
     void Bug_Report() { QDesktopServices::openUrl(QUrl("https://github.com/firedream89/customer-database/issues")); };
-    void ShowDoc(int row, int column);
+    void ShowDoc(int row);
     void ActivateRappelFin(int checkState);
     void CloseTab(int tab);
     void TogglePro(bool checked);
@@ -64,11 +64,9 @@ private:
     void ResizeTableColumns(QTableWidget *table);
     void resizeEvent(QResizeEvent* event);
     Ui::MainWindow *ui;
-    database db;
-    QString docFilePath = QDir::homePath() + "/Documents/DB_Client";
-    QString SavedFilePath = "/Clients/";
     qint64 _rappel_jours_financement;
     qint64 _rappel_jours_livraison;
+    Common common;
 
 
 };
