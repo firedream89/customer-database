@@ -78,7 +78,7 @@ void MainWindow::ShowAbout()
 void MainWindow::Init()
 {
     if(!common.InitData())
-        QMessageBox::warning(this, tr("Erreur"), tr("La base données n'a pas pu être ouverte !"));
+        warning(tr("La base données n'a pas pu être ouverte !"));
 
     Clear();
 
@@ -129,23 +129,23 @@ void MainWindow::TogglePro(bool checked)
 void MainWindow::Save_Client()
 {
     if(ui->name->text().isEmpty()) {
-        warning("Un nom doit être saisie !");
+        warning(tr("Un nom doit être saisie !"));
         return;
     }
     else if(ui->surname->text().isEmpty()) {
-        warning("Un prénom doit être saisie !");
+        warning(tr("Un prénom doit être saisie !"));
         return;
     }
     else if(ui->phone->text().isEmpty()) {
-        warning("Un numéro de téléphone doit être saisie !");
+        warning(tr("Un numéro de téléphone doit être saisie !"));
         return;
     }
     else if(ui->email->text().isEmpty()) {
-        warning("Un email doit être saisie !");
+        warning(tr("Un email doit être saisie !"));
         return;
     }
     else if(ui->carPurchased->text().isEmpty()) {
-        warning("Le modèle de voiture doit être saisie !");
+        warning(tr("Le modèle de voiture doit être saisie !"));
         return;
     }
 
@@ -380,7 +380,7 @@ void MainWindow::UpdateTable()
     Clear();
     ui->mainTable->setSortingEnabled(false);
 
-    common.UpdateTable(ui->mainTable);
+    common.Search(ui->mainTable, "");
 
     ui->mainTable->setSortingEnabled(true);
 }
@@ -453,7 +453,7 @@ void MainWindow::Search(QString word)
     Clear();
     ui->mainTable->setSortingEnabled(false);
 
-    common.UpdateTable(ui->mainTable, word);
+    common.Search(ui->mainTable, word);
 
     ui->mainTable->setSortingEnabled(true);
 }
@@ -468,11 +468,10 @@ void MainWindow::AddDocuments()
     QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
 
     ui->nbDocuments->setText(QString::number(list.count()));
-
     QStringList documents;
     for(const QFileInfo &fileInfo : list)
         documents.append(fileInfo.fileName() + "|;");
-    documents.remove(documents.count()-1, documents.count()-1);
+    documents.last().remove(documents.last().count()-1, documents.last().count()-1);
 
     common.SetTableDocument(ui->tableDocuments, documents);
 
@@ -523,30 +522,7 @@ void MainWindow::RappelProcess()
     //Livraison
     int rappelLiv = 0;
     int rappelFin = 0;
-    QSqlQuery test;
-    test.exec("SELECT * FROM Clients");
-    while(test.next()) {
-        QStringList typeRappel;
-        if(test.value("rappel_Livraison").toDate() <= QDate::currentDate() && test.value("rappel").toInt() == 0) {
-            typeRappel.append("Livraison prévu le " + test.value("date_Livraison_Prevu").toDate().toString("dd-MM-yyyy"));
-            rappelLiv++;
-        }
-        if(test.value("rappel_Financement").toDate() <= QDate::currentDate() && test.value("rappel").toInt() < 2) {
-            typeRappel.append("Fin de financement prévu le " + test.value("date_Livraison_Prevu").toDate().addMonths(
-                                  test.value("duree_Financement").toInt()).toString("dd-MM-yyyy"));
-            rappelFin++;
-        }
-
-        foreach (QString rappel, typeRappel) {
-            ui->rappelTable->insertRow(0);
-            ui->rappelTable->setItem(0, 0, new QTableWidgetItem(test.value("ID").toString()));
-            ui->rappelTable->setItem(0, 1, new QTableWidgetItem(test.value("nom").toString().toUpper()));
-            ui->rappelTable->setItem(0, 2, new QTableWidgetItem(test.value("prenom").toString()));
-            ui->rappelTable->setItem(0, 3, new QTableWidgetItem(test.value("phone").toString()));
-            ui->rappelTable->setItem(0, 4, new QTableWidgetItem(test.value("car_Purchased").toString()));
-            ui->rappelTable->setItem(0, 5, new QTableWidgetItem(rappel));
-        }
-    }
+    common.Rappel(ui->rappelTable, rappelLiv, rappelFin);
     ui->rappelTable->setSortingEnabled(true);
     ui->statusbar->showMessage(tr("RAPPEL : Livraison(s) : %1  Fin de Financement : %2").arg(rappelLiv).arg(rappelFin));
 }
@@ -558,17 +534,8 @@ void MainWindow::SendEmail()
     if(items.count() == 0)
         return;
 
-    QString link = "mailto:%1";
-    QString destinataires = "";
-    for(int i = 0; i < items.count(); i++) {
-        DEBUG << items.at(i)->row();
-        QSqlQuery req;
-        req.exec("SELECT * FROM Clients WHERE ID='" + ui->rappelTable->item(items.at(i)->row(),0)->text() + "'");
-        if(req.next())
-            destinataires += req.value("email").toString() + ";";
-    }
-    link = link.arg(destinataires);
-    QDesktopServices::openUrl(QUrl(link));
+    if(!common.SendMail(items))
+        warning(tr("Echec de la préparation du lien d'envoi d'email"));
 }
 
 void MainWindow::UpdateRappel()
@@ -576,22 +543,8 @@ void MainWindow::UpdateRappel()
     QList<QTableWidgetItem*> items = common.SuppressionDoublon(ui->rappelTable->selectedItems());
 
     if(items.count() > 0 && QMessageBox::question(this,"Validation rappels",QString("Voulez-vous vraiment retirer %1 de la liste de rappel ?").arg(items.count())) == QMessageBox::Yes) {
-        for(int i = 0; i < items.count(); i++) {
-            int column = 0;
-            int row = items.at(i)->row();
-            QString idStr = ui->rappelTable->item(row, column)->text();
-            QSqlQuery req;
-            req.exec("SELECT * FROM Clients WHERE ID='" + idStr + "'");
-            req.next();
-            int rappel = req.value("rappel").toInt();
-
-            if(rappel == Tous)
-                rappel = Financement;
-            else if(rappel == Financement)
-                rappel = Aucun;
-
-            req.exec(QString("UPDATE Clients SET rappel='" + QString::number(rappel) + "' WHERE ID='" + idStr) + "'");
-        }
+        if(!common.UpdateRappel(items))
+            warning(tr("Un ou plusieurs rappels n'ont pas pu être validé !"));
         RappelProcess();
         UpdateTable();
     }
@@ -600,20 +553,14 @@ void MainWindow::UpdateRappel()
 void MainWindow::ShowDoc(int row)
 {
     QString doc = ui->tableDocuments->item(row,0)->text();
-    QString link = Common::docFilePath + "/" + doc;
-
-    QPdfDocument *pdf = new QPdfDocument;
-    pdf->load(link);
+    QString path = Common::docFilePath + "/" + doc;
     QPdfView *view = ui->new_client->findChild<QPdfView*>("pdfviewer");
 
     if(!this->isMaximized() && !view->isVisible())
         this->setMinimumWidth(this->width() + view->width() + 200);
-    if(!view) {
-        warning("Ouverture du pdf échoué !");
-        return;
-    }
-    view->setDocument(pdf);
-    view->setVisible(true);
+
+    if(!common.ShowDoc(path, view))
+        warning(tr("Affichage du document échoué !"));
 }
 
 

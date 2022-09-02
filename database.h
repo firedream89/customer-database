@@ -25,6 +25,8 @@ public:
     bool isIdExist(int id);
     QMap<QString, QVariant> GetCustomerInfo(int id);
     QList<QMap<QString, QVariant>> GetAllCustomerInfo();
+    bool SetRappel(int id, int rappel);
+    bool RemoveCustomer(int id);
 
 
 signals:

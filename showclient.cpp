@@ -1,39 +1,13 @@
 #include "showclient.h"
 #include "ui_showclient.h"
 
-enum rappel_State {
-    Tous,
-    Financement,
-    Aucun
-};
-
-QString InfoRappelToStr(int rappel)
-{
-    switch (rappel) {
-    case Tous:
-        return "Livraison et Financement";
-        break;
-    case Financement:
-        return "Financement";
-        break;
-    default:
-        return "Aucun";
-    }
-}
-
 ShowClient::ShowClient(QWidget *parent, int id) :
     QDialog(parent),
     ui(new Ui::ShowClient)
 {
     ui->setupUi(this);
 
-    QSettings settings("DB_Clients","DB_Clients");
-    docFilePath = settings.value("linkFolder").toString();
-
-    QSqlQuery request;
-    request.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
-
-    SetValues(std::move(request));  
+    SetValues(common.GetCustomerInfo(id));
 
     QPdfView *view = new QPdfView();
     view->setPageMode(QPdfView::MultiPage);
@@ -54,60 +28,53 @@ ShowClient::~ShowClient()
     delete ui;
 }
 
-void ShowClient::SetValues(QSqlQuery request)
+void ShowClient::SetValues(QMap<QString, QVariant> customer)
 {
-    if(request.next()) {
-        ui->id->setText(request.value("ID").toString());
-        ui->name->setText(request.value("nom").toString().toUpper());
-        ui->surname->setText(request.value("prenom").toString());
-        ui->phone->setText(request.value("phone").toString());
-        ui->email->setText(request.value("email").toString());
-        ui->carPurchased->setText(request.value("car_Purchased").toString());
-        ui->carReprossessed->setText(request.value("car_Reprossessed").toString());
-        ui->originalDeliveryDate->setText(request.value("date_Livraison_Initial").toDate().toString("dd-MM-yyyy"));
-        ui->expectedDeliveryDate->setText(request.value("date_Livraison_Prevu").toDate().toString("dd-MM-yyyy"));
-        ui->financement->setText(request.value("type_Financement").toString());
-        ui->repaymentDuration->setText(request.value("duree_Financement").toString() + " mois");
-        ui->commentaire->setText(request.value("commentaire").toString());
-        ui->engReprise->setText(request.value("eng_Reprise").toString() + "€");
-        ui->rappelLiv->setText(request.value("rappel_Livraison").toDate().toString("dd-MM-yyyy"));
-        ui->rappelFin->setText(request.value("rappel_Financement").toDate().toString("dd-MM-yyyy"));
-        ui->societe->setText(request.value("societe").toString().toUpper());
-        ui->kbis->setText(request.value("kbis").toString());
+    if(!customer.isEmpty()) {
+        ui->id->setText(customer.value("ID").toString());
+        ui->name->setText(customer.value("name").toString().toUpper());
+        ui->surname->setText(customer.value("surname").toString());
+        ui->phone->setText(customer.value("phone").toString());
+        ui->email->setText(customer.value("email").toString());
+        ui->carPurchased->setText(customer.value("carPurchased").toString());
+        ui->carReprossessed->setText(customer.value("carReprossessed").toString());
+        ui->originalDeliveryDate->setText(customer.value("originalDeliveryDate").toDate().toString("dd-MM-yyyy"));
+        ui->expectedDeliveryDate->setText(customer.value("expectedDeliveryDate").toDate().toString("dd-MM-yyyy"));
+        ui->financement->setText(customer.value("financement").toString());
+        ui->repaymentDuration->setText(customer.value("repaymentPeriod").toString() + " mois");
+        ui->commentaire->setText(customer.value("commentaire").toString());
+        ui->engReprise->setText(customer.value("engReprise").toString() + "€");
+        ui->rappelLiv->setText(customer.value("rappelLivraison").toDate().toString("dd-MM-yyyy"));
+        ui->rappelFin->setText(customer.value("rappelFinancement").toDate().toString("dd-MM-yyyy"));
+        ui->societe->setText(customer.value("societe").toString().toUpper());
+        ui->kbis->setText(customer.value("kbis").toString());
 
 
-        ui->infoRappel->setText(InfoRappelToStr(request.value("rappel").toInt()));
+        ui->infoRappel->setText(common.RappelToStr(customer.value("rappel").toInt()));
 
         this->setWindowTitle(ui->surname->text() + " " + ui->name->text());
 
-        QDate datedebut = request.value("date_Livraison_Prevu").toDate();
+        QDate datedebut = customer.value("expectedDeliveryDate").toDate();
         QDate datefin = datedebut;
-        datefin = datefin.addMonths(request.value("duree_Financement").toInt());
+        datefin = datefin.addMonths(customer.value("repaymentPeriod").toInt());
         int days = QDate::currentDate().daysTo(datefin);
-        ui->repaymentEnd->setText(datefin.toString("dd-MM-yyyy") + " (" + QString::number(days) + " jours)");
+        ui->repaymentEnd->setText(tr("%1 (%2 jours)").arg(datefin.toString("dd-MM-yyyy"), QString::number(days)));
 
         //documents
-        QStringList doc = request.value("documents").toString().split(";");
-        ui->nbDocuments->setText(QString::number(request.value("documents").toString().isEmpty() ? 0 : doc.count()));
-        if(!request.value("documents").toString().isEmpty()) {
-            for(int i = 0; i < doc.count(); i++) {
-                ui->tableDocuments->insertRow(0);
-                ui->tableDocuments->setItem(0,0, new QTableWidgetItem(doc.at(i).split("|").first()));
-                ui->tableDocuments->setItem(0,1,new QTableWidgetItem(doc.at(i).split("|").last()));
-                ui->tableDocuments->item(0,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-                ui->tableDocuments->item(0,1)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-
-            }
+        QStringList doc = customer.value("documents").toString().split(";");
+        if(doc.count() > 1 || !doc.first().isEmpty()) {
+            ui->nbDocuments->setText(QString::number(customer.value("documents").toString().isEmpty() ? 0 : doc.count()));
+            common.SetTableDocument(ui->tableDocuments, doc, false);
         }
+
         ui->tableDocuments->resizeColumnsToContents();
     }
 }
 
 void ShowClient::Delete()
 {
-    if(QMessageBox::question(this, "Suppression client", "Voulez vous vraiment supprimer ce client ?") == QMessageBox::Yes) {
-        QSqlQuery request;
-        request.exec("DELETE FROM Clients WHERE ID='" + ui->id->text() + "'");
+    if(QMessageBox::question(this, tr("Suppression commande"), tr("Voulez vous vraiment supprimer cette commande ?")) == QMessageBox::Yes) {
+        common.RemoveCustomer(ui->id->text().toInt());
         this->reject();
     }
 
@@ -119,23 +86,18 @@ void ShowClient::UpdateClient()
     this->accept();
 }
 
-void ShowClient::ShowDoc(int row, int column)
+void ShowClient::ShowDoc(int row)
 {
     QString doc = ui->tableDocuments->item(row,0)->text();
-    QString link = docFilePath + SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + + "/" + doc;
-
-    QPdfDocument *pdf = new QPdfDocument;
-    pdf->load(link);
+    QString path = common.docFilePath + common.SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + + "/" + doc;
     QPdfView *view = this->findChild<QPdfView*>("pdfviewer");
 
     if(!this->isMaximized() && !view->isVisible())
         this->setMinimumWidth(this->width() + view->width() + 200);
-    if(!view) {
-        QMessageBox::warning(this, "Erreur", "Ouverture du pdf échoué !");
+    if(!common.ShowDoc(path, view)) {
+        QMessageBox::warning(this, tr("Erreur"), tr("Ouverture du pdf échoué !"));
         return;
     }
-    view->setDocument(pdf);
-    view->setVisible(true);
 }
 
 

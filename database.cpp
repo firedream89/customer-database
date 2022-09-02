@@ -204,7 +204,7 @@ QMap<QString, QVariant> database::GetCustomerInfo(int id)
         data.insert("carPurchased", req.value("car_Purchased"));
         data.insert("carReprossessed", req.value("car_Reprossessed"));
         data.insert("originalDeliveryDate", req.value("date_Livraison_Initial"));
-        data.insert("expectedDeliveryDate", req.value("data_Livraison_Prevu"));
+        data.insert("expectedDeliveryDate", req.value("date_Livraison_Prevu"));
         data.insert("rappelLivraison", req.value("rappel_Livraison"));
         data.insert("financement", req.value("type_Financement"));
         data.insert("repaymentPeriod", req.value("duree_Financement"));
@@ -230,7 +230,15 @@ QList<QMap<QString, QVariant>> database::GetAllCustomerInfo()
     return customerList;
 }
 
+bool database::SetRappel(int id, int rappel)
+{
+    QSqlQuery req;
+    return req.exec(QString("UPDATE Clients SET rappel='" + QString::number(rappel) + "' WHERE ID='" + QString::number(id)) + "'");
+}
 
-
-
+bool database::RemoveCustomer(int id)
+{
+    QSqlQuery request;
+    return request.exec("DELETE FROM Clients WHERE ID='" + QString::number(id) + "'");
+}
 

@@ -1,10 +1,13 @@
 #include "common.h"
+#include "qpdfdocument.h"
 
+#include <QPdfView>
 #include <QSqlQuery>
 #include <QTableWidgetItem>
 #include <QMessageBox>
+#include <QDesktopServices>
 
-QString RappelToStr(int rappel)
+QString Common::RappelToStr(int rappel)
 {
     switch (rappel) {
     case Tous:
@@ -149,6 +152,7 @@ int Common::SaveData(QMap<QString, QVariant> data)
 
 void Common::SetTableDocument(QTableWidget *table, QStringList documents, bool setType)
 {
+    qDebug() << documents.count();
     if(!documents.isEmpty()) {
         int nbRow = table->rowCount();
         for(int i = 0; i < documents.count(); i++) {
@@ -179,13 +183,9 @@ void Common::SetTableDocument(QTableWidget *table, QStringList documents, bool s
     }
 }
 
-void Common::UpdateTable(QTableWidget *table, QString filter)
+void Common::UpdateTable(QTableWidget *table, QList<QMap<QString, QVariant>> list)
 {
-    for(const QMap<QString, QVariant> &customer : db.GetAllCustomerInfo()){
-        if(filter.isEmpty() || customer.value("name").toString().toUpper().contains(filter.toUpper()) || customer.value("surname").toString().toUpper().contains(filter.toUpper()) ||
-                customer.value("carPurchased").toString().toUpper().contains(filter.toUpper()) || RappelToStr(customer.value("rappel").toInt()).toUpper().contains(filter.toUpper()) ||
-                customer.value("phone").toString().contains(filter) || customer.value("societe").toString().toUpper().contains(filter.toUpper()) ||
-                customer.value("kbis").toString().toUpper().contains(filter.toUpper())) {
+    for(const QMap<QString, QVariant> &customer : list){
             table->insertRow(0);
             table->setItem(0, 0, new QTableWidgetItem(customer.value("ID").toString()));
             table->setItem(0, 1, new QTableWidgetItem(customer.value("name").toString().toUpper()));
@@ -193,7 +193,10 @@ void Common::UpdateTable(QTableWidget *table, QString filter)
             table->setItem(0, 3, new QTableWidgetItem(customer.value("phone").toString()));
             table->setItem(0, 4, new QTableWidgetItem(customer.value("carPurchased").toString()));
             table->setItem(0, 5, new QTableWidgetItem(customer.value("originalDeliveryDate").toDate().toString("dd-MM-yyyy")));
-            table->setItem(0, 6, new QTableWidgetItem(RappelToStr(customer.value("rappel").toInt())));
+            QString rappel = customer.value("rappel").toString();
+            if(rappel.count() == 1)
+                rappel = RappelToStr(rappel.toInt());
+            table->setItem(0, 6, new QTableWidgetItem(rappel));
 
             QColor color;
             switch (customer.value("rappel").toInt()) {
@@ -207,18 +210,95 @@ void Common::UpdateTable(QTableWidget *table, QString filter)
                 color.setRgb(0, 0, 200);
             }
             table->item(0, table->columnCount()-1)->setForeground(QBrush(color));
-        }
     }
 }
 
+void Common::Search(QTableWidget *table, QString filter)
+{
+    QList<QMap<QString, QVariant>> list;
+    for(const QMap<QString, QVariant> &customer : db.GetAllCustomerInfo()){
+        if(filter.isEmpty() || customer.value("name").toString().toUpper().contains(filter.toUpper()) || customer.value("surname").toString().toUpper().contains(filter.toUpper()) ||
+                customer.value("carPurchased").toString().toUpper().contains(filter.toUpper()) || RappelToStr(customer.value("rappel").toInt()).toUpper().contains(filter.toUpper()) ||
+                customer.value("phone").toString().contains(filter) || customer.value("societe").toString().toUpper().contains(filter.toUpper()) ||
+                customer.value("kbis").toString().toUpper().contains(filter.toUpper())) {
+            list.append(customer);
+        }
+    }
+    UpdateTable(table, list);
+}
 
 
+void Common::Rappel(QTableWidget *table, int &livCount, int &finCount)
+{
+    for(QMap<QString, QVariant> &customer : db.GetAllCustomerInfo()) {
+        QList<QMap<QString, QVariant>> result;
+        if(customer.value("rappelLivraison").toDate() <= QDate::currentDate() && customer.value("rappel").toInt() == 0) {
+            customer.insert(tr("rappel"), tr("Livraison prévu le %1").arg(customer.value("expectedDeliveryDate").toDate().toString("dd-MM-yyyy")));
+            result.append(customer);
+            livCount++;
+        }
+        if(customer.value("rappelFinancement").toDate() <= QDate::currentDate() && customer.value("rappel").toInt() < 2) {
+            customer.insert(tr("rappel"), tr("Fin de financement prévu le %1").arg(customer.value("expectedDeliveryDate").toDate().addMonths(
+                                customer.value("repaymentPeriod").toInt()).toString("dd-MM-yyyy")));
+            result.append(customer);
+            finCount++;
+        }
+        UpdateTable(table, result);
+    }
+}
+
+bool Common::SendMail(QList<QTableWidgetItem*> items)
+{
+    QString link = "mailto:%1";
+    QString destinataires = "";
+    QTableWidget *table = items.at(0)->tableWidget();
+
+    for(QTableWidgetItem *item : items) {
+        QMap<QString, QVariant> customer = db.GetCustomerInfo(table->item(item->row(),0)->text().toInt());
+        if(!customer.isEmpty())
+            destinataires += customer.value("email").toString() + ";";
+    }
+    link = link.arg(destinataires);
+    return QDesktopServices::openUrl(QUrl(link));
+}
+
+bool Common::UpdateRappel(QList<QTableWidgetItem*> items)
+{
+    QTableWidget *table = items.at(0)->tableWidget();
+    bool result = true;
+
+    for(QTableWidgetItem *item : items) {
+        int id = table->item(item->row(),0)->text().toInt();
+        QMap<QString, QVariant> customer = db.GetCustomerInfo(id);
+        int rappel = -1;
+        if(!customer.isEmpty())
+            rappel = customer.value("rappel").toInt();
+
+        if(rappel == Tous)
+            rappel = Financement;
+        else if(rappel == Financement)
+            rappel = Aucun;
+
+        if(rappel >= 0 && rappel <= 2)
+           if(!db.SetRappel(id, rappel))
+               result = false;
+    }
+    return result;
+}
 
 
+bool Common::ShowDoc(QString docPath, QPdfView *view)
+{
+    QPdfDocument *pdf = new QPdfDocument;
+    pdf->load(docPath);
 
-
-
-
+    if(!view) {
+        return false;
+    }
+    view->setDocument(pdf);
+    view->setVisible(true);
+    return true;
+}
 
 
 
