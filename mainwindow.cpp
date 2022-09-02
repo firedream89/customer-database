@@ -460,12 +460,20 @@ void MainWindow::Search(QString word)
 
 void MainWindow::AddDocuments()
 {
-    while(ui->tableDocuments->rowCount() > 0) {///BUG EFFACEMENT EN EDIT CLIENT
-        ui->tableDocuments->removeRow(0);
-    }
-
     QDir dir(Common::docFilePath);
     QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
+
+    QStringList filenameList;
+    for(const QFileInfo &fileInfo : list)
+        filenameList.append(fileInfo.fileName());
+
+    for(int i = 0; i < ui->tableDocuments->rowCount(); i++) {
+        if(filenameList.contains(ui->tableDocuments->item(i,0)->text())) {
+            ui->tableDocuments->removeRow(i);
+            i--;
+        }
+
+    }
 
     ui->nbDocuments->setText(QString::number(list.count()));
     QStringList documents;
