@@ -522,7 +522,8 @@ void MainWindow::RappelProcess()
     int rappelFin = 0;
     common.Rappel(ui->rappelTable, rappelLiv, rappelFin);
     ui->rappelTable->setSortingEnabled(true);
-    ui->statusbar->showMessage(tr("RAPPEL : Livraison(s) : %1  Fin de Financement : %2").arg(rappelLiv).arg(rappelFin));
+    if(rappelLiv > 0 || rappelFin > 0)
+        ui->statusbar->showMessage(tr("RAPPEL : %n Livraison(s) en approche ","",rappelLiv) + tr("; %n Fin(s) de financement(s)","",rappelFin));
 }
 
 void MainWindow::SendEmail()

@@ -34,6 +34,9 @@ FORMS += \
     options.ui \
     showclient.ui
 
+TRANSLATIONS += \
+    customer_database_fr.ts
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
