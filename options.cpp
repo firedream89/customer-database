@@ -37,10 +37,10 @@ void Options::Init()
     if(settings.value("linkFolder").toString().isEmpty())
         settings.setValue("linkFolder", QDir::homePath() + "/Documents/DB_Clients/");
     if(settings.value("linkDB").toString().isEmpty())
-        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Clients/");
+        settings.setValue("linkDB", QDir::homePath() + "/Documents/DB_Clients/database");
 
     ui->empFolder->setText(settings.value("linkFolder").toString().replace("/DB_Clients",""));
-    ui->empBDD->setText(settings.value("linkDB").toString().replace("/DB_Clients",""));
+    ui->empBDD->setText(settings.value("linkDB").toString().replace("/DB_Clients/database",""));
 
     ui->listFin->setDragEnabled(true);
     ui->listFin->setDragDropMode(QAbstractItemView::InternalMove);
@@ -53,7 +53,7 @@ void Options::Init()
     connect(ui->btDuree, &QPushButton::clicked, this, &Options::AddItem);
 
     for(int i = 1; i < 4; i++) {
-        QFileInfo dbInfo(ui->empBDD->text() + QString("/DB_Clients/bdd_Sav%1.sav").arg(i));
+        QFileInfo dbInfo(ui->empBDD->text() + QString("/DB_Clients/database/bdd_Sav%1.sav").arg(i));
         if(dbInfo.isFile())
             ui->listDBSav->addItem(dbInfo.lastModified().toString("dd-MM-yyyy hh:mm"));
     }
@@ -98,7 +98,7 @@ void Options::Save()
 
     QSettings settings("DB_Clients","DB_Clients");
     settings.setValue("linkFolder", ui->empFolder->text() + "/DB_Clients");
-    settings.setValue("linkDB", ui->empBDD->text() + "/DB_Clients");
+    settings.setValue("linkDB", ui->empBDD->text() + "/DB_Clients/database");
 
 
     int id = database::Get_Last_Id()+1;
@@ -135,7 +135,7 @@ void Options::RestorationDB()
     if(ret == QMessageBox::Yes)
     {
         database::close();
-        QString dbLink = ui->empBDD->text() + "/DB_Clients/";
+        QString dbLink = ui->empBDD->text() + "/DB_Clients/database/";
 
         if(QFile::copy(dbLink + "bdd.db",dbLink + "bdd.old")) {
             QFile::remove(dbLink + "bdd.db");

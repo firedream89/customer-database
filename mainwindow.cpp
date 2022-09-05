@@ -211,9 +211,9 @@ void MainWindow::Save_Client()
 
         if(fDest.exists() && f.exists()) {//Si le fichier existe déjà
             copy = false;
+            if(QMessageBox::question(this, tr("Remplacement fichier"), tr("le fichier %1 existe déjà dans le dossier client, voulez-vous les remplacer ?").arg(doc)) == QMessageBox::Yes)
+                copy = true;
         }
-        if(QMessageBox::question(this, "Remplacement fichier", "Des fichiers existe déjà dans le dossier client, voulez-vous les remplacer ?") == QMessageBox::Yes)
-            copy = true;
     }
 
     //Ajout data
@@ -255,6 +255,9 @@ void MainWindow::Save_Client()
        break;
    case dbRecordError:
        errorString = tr("Echec de l'enregistrement du client !");
+       break;
+   case dataCountError:
+       errorString = tr("Erreur interne(data count) !");
        break;
    }
    if(!errorString.isEmpty())
@@ -460,25 +463,12 @@ void MainWindow::Search(QString word)
 
 void MainWindow::AddDocuments()
 {
-    QDir dir(Common::docFilePath);
-    QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
-
-    QStringList filenameList;
-    for(const QFileInfo &fileInfo : list)
-        filenameList.append(fileInfo.fileName());
-
-    for(int i = 0; i < ui->tableDocuments->rowCount(); i++) {
-        if(filenameList.contains(ui->tableDocuments->item(i,0)->text())) {
-            ui->tableDocuments->removeRow(i);
-            i--;
-        }
-
-    }
+    QStringList list = common.GetAvailableFiles();
 
     ui->nbDocuments->setText(QString::number(list.count()));
     QStringList documents;
-    for(const QFileInfo &fileInfo : list)
-        documents.append(fileInfo.fileName() + "|;");
+    for(const QString &fileInfo : list)
+        documents.append(fileInfo + "|;");
     documents.last().remove(documents.last().count()-1, documents.last().count()-1);
 
     common.SetTableDocument(ui->tableDocuments, documents);
@@ -561,7 +551,15 @@ void MainWindow::UpdateRappel()
 void MainWindow::ShowDoc(int row)
 {
     QString doc = ui->tableDocuments->item(row,0)->text();
-    QString path = Common::docFilePath + "/" + doc;
+    QString path = Common::docFilePath + Common::SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc;
+    if(!QFile::exists(path)) {//si le document n'existe pas
+        path = Common::docFilePath + "/" + doc;
+        if(!QFile::exists(path)) {
+            warning(tr("Document non trouvé !"));
+            return;
+        }
+    }
+
     QPdfView *view = ui->new_client->findChild<QPdfView*>("pdfviewer");
 
     if(!this->isMaximized() && !view->isVisible())

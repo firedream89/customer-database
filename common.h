@@ -20,7 +20,8 @@ enum save_Error {
     copyFileError,
     removeFileError,
     removeFolderError,
-    dbRecordError
+    dbRecordError,
+    dataCountError
 };
 
 class Common : public QObject
@@ -42,6 +43,7 @@ public:
     bool UpdateRappel(QList<QTableWidgetItem*> items);
     bool ShowDoc(QString docPath, QPdfView *view);
     bool RemoveCustomer(int id) { return db.RemoveCustomer(id); }
+    QStringList GetAvailableFiles();
 
     inline static const QString appVersion = "1.0-beta6";
     inline static const QString updateLink = "https://api.github.com/repos/firedream89/customer-database/releases";

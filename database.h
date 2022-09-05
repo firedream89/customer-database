@@ -31,6 +31,10 @@ public:
 
 signals:
 
+private:
+    QString RemoveBadChar(QString str);
+    QString RestoreBadChar(QString str);
+
 };
 
 #endif // DATABASE_H

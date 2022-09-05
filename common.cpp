@@ -6,6 +6,7 @@
 #include <QTableWidgetItem>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QStringList>
 
 QString Common::RappelToStr(int rappel)
 {
@@ -62,7 +63,7 @@ bool Common::InitData()
 int Common::SaveData(QMap<QString, QVariant> data)
 {
     if(data.count() != 20)
-        return false;
+        return dataCountError;
 
     QString id = data.value("ID").toString();
     QString name = data.value("name").toString();
@@ -71,29 +72,50 @@ int Common::SaveData(QMap<QString, QVariant> data)
     QMap<QString, QVariant> customerData = db.GetCustomerInfo(data.value("ID", -1).toInt());
     QString newPath = docFilePath + SavedFilePath + name + "_" + surname + "/" + id;
 
+    //Create new path
+    QDir dir;
+    dir.mkpath(newPath);
+
     //Move files
+    QStringList listDoc = doc.split(";");
     if(db.isIdExist(customerData.value("ID").toInt())) {
         QString oldPath = docFilePath + SavedFilePath + customerData.value("name").toString() + "_" + customerData.value("surname").toString() + "/" + id;
-        if(name != customerData.value("name").toString() || surname != customerData.value("surname").toString()) {
-            QDir dir;
-            if(dir.mkpath(newPath) && !doc.isEmpty()) {
-                QStringList listDoc = doc.split(";");
-                bool copyOk = true;
-                foreach(QString file, listDoc) {
-                    if(!QFile::copy(oldPath + "/" + file.split("|").first(), newPath + "/" + file.split("|").first())) {
-                        return copyFileError;
-                        copyOk = false;
-                    }
-                    else
-                        if(!QFile::remove(oldPath + "/" + file.split("|").first()))
-                            return removeFileError;
+        QStringList oldListDoc = customerData.value("documents").toString().split(";");
+        for(const QString &file : oldListDoc) {
+            if(name != customerData.value("name").toString() || surname != customerData.value("surname").toString()) {
+                if(!QFile::copy(oldPath + "/" + file.split("|").first(), newPath + "/" + file.split("|").first())) {
+                    return copyFileError;
                 }
-                if(copyOk) {
-                    dir.setPath(oldPath);
-                    if(!dir.removeRecursively())
-                        return removeFolderError;
+                else {
+                    if(!QFile::remove(oldPath + "/" + file.split("|").first()))
+                        return removeFileError;
                 }
             }
+            listDoc.removeOne(file);
+        }
+    }
+    if(listDoc.count() > 0) {
+        for(const QString &file : listDoc) {
+            QString doc = file.split("|").count() == 2 ? file.split("|").first() : "";
+            if(doc.isEmpty())
+                continue;
+
+            QFile f(docFilePath + "/" +  doc);
+            QFile fDest(newPath + "/" + doc);
+
+            if(data.value("forceCopy").toBool() && fDest.exists()) {
+                if(!fDest.remove())
+                    return removeFileError;
+            }
+            else if(fDest.exists())
+                continue;
+
+            if(f.copy(newPath + "/" + doc)) {
+                if(!f.moveToTrash())
+                    return removeFileError;
+            }
+            else
+                return copyFileError;
         }
     }
 
@@ -119,40 +141,11 @@ int Common::SaveData(QMap<QString, QVariant> data)
                      data.value("kbis").toString()))
         return dbRecordError;
 
-    //Create new path
-    QDir dir;
-    dir.mkpath(newPath);
-
-    //Move files
-    QStringList listDoc = doc.split(";");
-    for(int i = 0; i < listDoc.count(); i++) {
-        QString doc = listDoc.at(i).split("|").count() == 2 ? listDoc.at(i).split("|").first() : "";
-        if(doc.isEmpty())
-            continue;
-
-        QFile f(docFilePath + "/" +  doc);
-        QFile fDest(newPath + "/" + doc);
-
-        if(data.value("forceCopy").toBool() && fDest.exists()) {
-            if(!fDest.remove())
-                return removeFileError;
-        }
-        else if(fDest.exists())
-            continue;
-
-        if(f.copy(newPath + "/" + doc)) {
-            if(!f.remove())
-                return removeFileError;
-        }
-        else
-            return copyFileError;
-    }
     return noError;
 }
 
 void Common::SetTableDocument(QTableWidget *table, QStringList documents, bool setType)
 {
-    qDebug() << documents.count();
     if(!documents.isEmpty()) {
         int nbRow = table->rowCount();
         for(int i = 0; i < documents.count(); i++) {
@@ -161,7 +154,7 @@ void Common::SetTableDocument(QTableWidget *table, QStringList documents, bool s
 
             if(setType) {
                 QComboBox* combo = new QComboBox(table);
-                combo->setObjectName(QString::number(i));
+                combo->setObjectName(QString::number(i + nbRow));
                 combo->addItem("");
                 combo->setItemData(0,0);
                 combo->addItem(tr("Fiche force"));
@@ -300,8 +293,16 @@ bool Common::ShowDoc(QString docPath, QPdfView *view)
     return true;
 }
 
+QStringList Common::GetAvailableFiles()
+{
+    QDir dir(Common::docFilePath);
+    QFileInfoList list = dir.entryInfoList(QStringList("*.pdf"), QDir::NoDotAndDotDot | QDir::Files);
 
-
+    QStringList filenameList;
+    for(const QFileInfo &fileInfo : list)
+        filenameList.append(fileInfo.fileName());
+    return filenameList;
+}
 
 
 
