@@ -2,12 +2,11 @@
 #define SHOWCLIENT_H
 
 #include <QDialog>
-#include <database.h>
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QPdfView>
 #include <QGridLayout>
-#include <QPdfDocument>
+#include "common.h"
 
 namespace Ui {
 class ShowClient;
@@ -25,14 +24,13 @@ signals:
     void Update(int id);
 
 private:
-    void ShowDoc(int row, int column);
-    void SetValues(QSqlQuery request);
+    void ShowDoc(int row);
+    void SetValues(QMap<QString, QVariant> customer);
     void Delete();
     void UpdateClient();
     Ui::ShowClient *ui;
-    database _db;
-    QString docFilePath = QDir::homePath() + "/Documents/DB_Client/";
-    QString SavedFilePath = "/Clients/";
+    Common common;
+
 };
 
 #endif // SHOWCLIENT_H

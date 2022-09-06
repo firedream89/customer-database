@@ -5,6 +5,7 @@
 #include <QtSql>
 #include <QStringList>
 
+
 #ifndef DEBUG
     #define DEBUG qDebug()
 #endif
@@ -21,9 +22,18 @@ public:
     bool init();
     static void close();
     void Save();
+    bool isIdExist(int id);
+    QMap<QString, QVariant> GetCustomerInfo(int id);
+    QList<QMap<QString, QVariant>> GetAllCustomerInfo();
+    bool SetRappel(int id, int rappel);
+    bool RemoveCustomer(int id);
 
 
 signals:
+
+private:
+    QString RemoveBadChar(QString str);
+    QString RestoreBadChar(QString str);
 
 };
 
