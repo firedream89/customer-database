@@ -488,7 +488,7 @@
             <item>
              <widget class="QSpinBox" name="inRappelFin">
               <property name="suffix">
-               <string> </string>
+               <string/>
               </property>
               <property name="minimum">
                <number>0</number>

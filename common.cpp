@@ -90,26 +90,26 @@ int Common::SaveData(QMap<QString, QVariant> data)
                     if(!QFile::remove(oldPath + "/" + file.split("|").first()))
                         return removeFileError;
                 }
-            }
-            listDoc.removeOne(file);
+                listDoc.removeOne(file);
+            } 
         }
     }
     if(listDoc.count() > 0) {
-        for(const QString &file : listDoc) {
-            QString doc = file.split("|").count() == 2 ? file.split("|").first() : "";
+        for(int i = 0; i < listDoc.count(); i++) {
+            QString doc = listDoc.at(i).split("|").count() == 2 ? listDoc.at(i).split("|").first() : "";
             if(doc.isEmpty())
                 continue;
 
             QFile f(docFilePath + "/" +  doc);
             QFile fDest(newPath + "/" + doc);
 
-            if(data.value("forceCopy").toBool() && fDest.exists()) {
+            if(data.value("forceCopy").toStringList().at(i) == "true" && fDest.exists()) {
                 if(!fDest.remove())
                     return removeFileError;
             }
             else if(fDest.exists())
                 continue;
-
+DEBUG << "continue";
             if(f.copy(newPath + "/" + doc)) {
                 if(!f.moveToTrash())
                     return removeFileError;

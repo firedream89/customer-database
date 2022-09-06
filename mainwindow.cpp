@@ -199,9 +199,10 @@ void MainWindow::Save_Client()
     }
 
     //if file exist
-    bool copy = true;
+    QStringList copy;
     QStringList listDoc = doc.split(";");
     for(int i = 0; i < listDoc.count(); i++) {
+        copy.append("false");
         QString doc = listDoc.at(i).split("|").count() == 2 ? listDoc.at(i).split("|").first() : "";
         if(doc.isEmpty())
             continue;
@@ -210,9 +211,8 @@ void MainWindow::Save_Client()
         QFile fDest(Common::docFilePath + Common::SavedFilePath + ui->name->text() + "_" + ui->surname->text() + "/" + ui->id->text() + "/" + doc);
 
         if(fDest.exists() && f.exists()) {//Si le fichier existe déjà
-            copy = false;
             if(QMessageBox::question(this, tr("Remplacement fichier"), tr("le fichier %1 existe déjà dans le dossier client, voulez-vous les remplacer ?").arg(doc)) == QMessageBox::Yes)
-                copy = true;
+                copy.last() = "true";
         }
     }
 
