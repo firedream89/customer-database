@@ -464,6 +464,8 @@ void MainWindow::Search(QString word)
 void MainWindow::AddDocuments()
 {
     QStringList list = common.GetAvailableFiles();
+    if(list.isEmpty())
+        return;
 
     ui->nbDocuments->setText(QString::number(list.count()));
     QStringList documents;

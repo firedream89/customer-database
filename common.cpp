@@ -109,7 +109,7 @@ int Common::SaveData(QMap<QString, QVariant> data)
             }
             else if(fDest.exists())
                 continue;
-DEBUG << "continue";
+
             if(f.copy(newPath + "/" + doc)) {
                 if(!f.moveToTrash())
                     return removeFileError;
