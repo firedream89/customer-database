@@ -9,13 +9,11 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     QTranslator translator;
-    if (!translator.load("customer_database_fr"))
-        return 1;
-    a.installTranslator(&translator);
+    if (translator.load("translations/customer_database_fr"))
+        a.installTranslator(&translator);
     QTranslator baseTranslator;
-    if (!baseTranslator.load("qt_fr"))
-        return 2;
-    a.installTranslator(&baseTranslator);
+    if (baseTranslator.load("translations/qt_fr"))
+        a.installTranslator(&baseTranslator);
 
 
     w.showMaximized();
