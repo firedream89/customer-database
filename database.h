@@ -20,6 +20,7 @@ public:
     static int Get_Last_Id();
     bool init();
     static void close();
+    void Save();
 
 
 signals:

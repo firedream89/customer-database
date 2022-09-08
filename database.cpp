@@ -130,7 +130,9 @@ bool database::update_Client(QString nom, QString prenom, QString phone, QString
                 "'" + societe + "',"
                 "'" + kbis + "')";
     }
-    return query.exec(request);
+    bool result = query.exec(request);
+    Save();
+    return result;
 }
 
 int database::Get_Last_Id()
@@ -147,8 +149,33 @@ void database::close()
     db.close();
 }
 
+void database::Save()
+{qDebug() << "Save";
+    QList<QDate> DBSave;
+    QSettings settings("DB_Clients","DB_Clients");
+    for(int i = 1; i < 4; i++) {
+        QFileInfo dbInfo(settings.value("linkFolder").toString() + QString("/bdd_Sav%1.sav").arg(i));
+        if(dbInfo.isFile())
+            DBSave.append(dbInfo.lastModified().date());
+        else
+            DBSave.append(QDate());
+    }
 
 
+    if(DBSave.at(0) != QDate::currentDate() && DBSave.at(1) != QDate::currentDate() && DBSave.at(2) != QDate::currentDate()) {
+        QString file = "";
+        if((DBSave.at(0) < DBSave.at(1) && DBSave.at(0) < DBSave.at(2)) || DBSave.at(0).isNull())
+            file = "bdd_Sav1.sav";
+        else if((DBSave.at(1) < DBSave.at(0) && DBSave.at(1) < DBSave.at(2)) || DBSave.at(1).isNull())
+            file = "bdd_Sav2.sav";
+        else if((DBSave.at(2) < DBSave.at(0) && DBSave.at(2) < DBSave.at(1)) || DBSave.at(2).isNull())
+            file = "bdd_Sav3.sav";
+qDebug() << file << DBSave.at(0).isNull();
+        QFile::remove(settings.value("linkFolder").toString() + "/" + file);
+        QFile::copy(settings.value("linkFolder").toString() + "/bdd.db", settings.value("linkFolder").toString() + "/" + file);
+
+    }
+}
 
 
 
