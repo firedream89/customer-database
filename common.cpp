@@ -111,7 +111,7 @@ int Common::SaveData(QMap<QString, QVariant> data)
                 continue;
 
             if(f.copy(newPath + "/" + doc)) {
-                if(!f.moveToTrash())
+                if(!f.remove())
                     return removeFileError;
             }
             else
@@ -148,9 +148,16 @@ void Common::SetTableDocument(QTableWidget *table, QStringList documents, bool s
 {
     if(!documents.isEmpty()) {
         int nbRow = table->rowCount();
+        QStringList listFiles = GetAvailableFiles();
+
         for(int i = 0; i < documents.count(); i++) {
+            if(listFiles.contains(documents.at(i).split("|").first()) && table->findItems(documents.at(i).split("|").first(),Qt::MatchExactly).count() > 0)
+                continue;
+
             table->insertRow(i + nbRow);
             table->setItem(i + nbRow,0, new QTableWidgetItem(documents.at(i).split("|").first()));
+
+
 
             if(setType) {
                 QComboBox* combo = new QComboBox(table);
@@ -282,8 +289,11 @@ bool Common::UpdateRappel(QList<QTableWidgetItem*> items)
 
 bool Common::ShowDoc(QString docPath, QPdfView *view)
 {
+    CloseDoc(view);
+    doc.setFileName(docPath);
+    doc.open(QIODevice::ReadOnly);
     QPdfDocument *pdf = new QPdfDocument;
-    pdf->load(docPath);
+    pdf->load(&doc);
 
     if(!view) {
         return false;
@@ -291,6 +301,15 @@ bool Common::ShowDoc(QString docPath, QPdfView *view)
     view->setDocument(pdf);
     view->setVisible(true);
     return true;
+}
+
+void Common::CloseDoc(QPdfView *view)
+{
+    if(view && view->document()) {
+        view->setDocument(new QPdfDocument);
+        doc.close();
+        qDebug() << "close file";
+    }
 }
 
 QStringList Common::GetAvailableFiles()

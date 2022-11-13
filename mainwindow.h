@@ -61,6 +61,8 @@ public:
     void GetUpdateInfo(QNetworkReply *reply = nullptr);
 
 private:
+    void dragEnterEvent(QDragEnterEvent *e);
+    void dropEvent(QDropEvent *event);
     void ResizeTableColumns(QTableWidget *table);
     void resizeEvent(QResizeEvent* event);
     Ui::MainWindow *ui;

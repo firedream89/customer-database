@@ -169,7 +169,7 @@ void database::Save()
     QList<QDate> DBSave;
     QSettings settings("DB_Clients","DB_Clients");
     for(int i = 1; i < 4; i++) {
-        QFileInfo dbInfo(settings.value("linkFolder").toString() + QString("/bdd_Sav%1.sav").arg(i));
+        QFileInfo dbInfo(settings.value("linkDB").toString() + QString("/bdd_Sav%1.sav").arg(i));
         if(dbInfo.isFile())
             DBSave.append(dbInfo.lastModified().date());
         else
@@ -183,11 +183,11 @@ void database::Save()
             file = "bdd_Sav1.sav";
         else if((DBSave.at(1) < DBSave.at(0) && DBSave.at(1) < DBSave.at(2)) || DBSave.at(1).isNull())
             file = "bdd_Sav2.sav";
-        else if((DBSave.at(2) < DBSave.at(0) && DBSave.at(2) < DBSave.at(1)) || DBSave.at(2).isNull())
+        else
             file = "bdd_Sav3.sav";
-qDebug() << file << DBSave.at(0).isNull();
-        QFile::remove(settings.value("linkFolder").toString() + "/" + file);
-        QFile::copy(settings.value("linkFolder").toString() + "/bdd.db", settings.value("linkFolder").toString() + "/" + file);
+
+        QFile::remove(settings.value("linkDB").toString() + "/" + file);
+        QFile::copy(settings.value("linkDB").toString() + "/bdd.db", settings.value("linkDB").toString() + "/" + file);
 
     }
 }

@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="tabsClosable">
        <bool>true</bool>
@@ -407,6 +407,12 @@
             <layout class="QGridLayout" name="gridLayout_5">
              <item row="0" column="0">
               <widget class="QLabel" name="label_11">
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="text">
                 <string>Nombres de documents</string>
                </property>
@@ -419,14 +425,20 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="2">
+             <item row="0" column="3">
               <widget class="QPushButton" name="newDocumentBt">
+               <property name="maximumSize">
+                <size>
+                 <width>200</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="text">
                 <string>Scanner</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="0" colspan="3">
+             <item row="1" column="0" colspan="4">
               <widget class="QTableWidget" name="tableDocuments">
                <property name="alternatingRowColors">
                 <bool>true</bool>
@@ -442,6 +454,19 @@
                 </property>
                </column>
               </widget>
+             </item>
+             <item row="0" column="2">
+              <spacer name="horizontalSpacer_6">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </widget>

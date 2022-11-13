@@ -99,6 +99,22 @@ void MainWindow::Init()
     RappelProcess();
 
     GetUpdateInfo();
+
+    ui->tableDocuments->setAcceptDrops(true);
+    ui->tableDocuments->setDefaultDropAction(Qt::LinkAction);
+    //Test
+}
+
+void MainWindow::dropEvent(QDropEvent *event) {
+    qDebug() << "Drop";
+    qDebug() << event->mimeData()->urls();
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *e)
+{
+    if (e->mimeData()->hasUrls()) {
+        e->acceptProposedAction();
+    }
 }
 
 void MainWindow::warning(QString text)
@@ -149,6 +165,9 @@ void MainWindow::Save_Client()
         return;
     }
 
+
+    //Fermeture document
+    common.CloseDoc(ui->new_client->findChild<QPdfView*>("pdfviewer"));
 
     //Gestion documents
     QTableWidget *documents = ui->tableDocuments;
@@ -302,6 +321,9 @@ void MainWindow::New()
 
     ui->tabWidget->setCurrentIndex(2);
     ui->tabWidget->setTabVisible(2, true);
+
+    if(!ui->searchEdit->text().isEmpty())
+        ui->name->setText(ui->searchEdit->text());
 }
 
 void MainWindow::UpdateCalendar()

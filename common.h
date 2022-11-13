@@ -44,6 +44,7 @@ public:
     bool ShowDoc(QString docPath, QPdfView *view);
     bool RemoveCustomer(int id) { return db.RemoveCustomer(id); }
     QStringList GetAvailableFiles();
+    void CloseDoc(QPdfView *view);
 
     inline static const QString appVersion = "1.0-beta6";
     inline static const QString updateLink = "https://api.github.com/repos/firedream89/customer-database/releases";
@@ -55,6 +56,7 @@ signals:
 
 private:
     database db;
+    QFile doc;
 };
 
 #endif // COMMON_H
