@@ -53,7 +53,7 @@ public:
     void UpdateCalendar();
     void ResizeTable(int tab);
     void ShowAbout();
-    void Bug_Report() { QDesktopServices::openUrl(QUrl("https://github.com/firedream89/customer-database/issues")); };
+    void Bug_Report() { QDesktopServices::openUrl(QUrl("https://github.com/kevin-briand/customer-database/issues")); };
     void ShowDoc(int row);
     void ActivateRappelFin(int checkState);
     void CloseTab(int tab);

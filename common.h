@@ -47,7 +47,7 @@ public:
     void CloseDoc(QPdfView *view);
 
     inline static const QString appVersion = "1.0-beta6";
-    inline static const QString updateLink = "https://api.github.com/repos/firedream89/customer-database/releases";
+    inline static const QString updateLink = "https://api.github.com/repos/kevin-briand/customer-database/releases";
     inline static QString docFilePath = QDir::homePath() + "/Documents/DB_Client";
     inline static const QString SavedFilePath = "/Clients/";
 
