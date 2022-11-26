@@ -9,8 +9,23 @@ database::database(QObject *parent)
 bool database::init()
 {
     QSettings settings("DB_Clients","DB_Clients");
-    //Ouverture de la DB
     QString linkDB = settings.value("linkDB").toString().isEmpty() ? QDir::homePath() + "/Documents/DB_Client" : settings.value("linkDB").toString();
+
+    ///Patch DB folder
+    if(!linkDB.contains("/database")) {
+        if(QFile::copy(linkDB + "/bdd.db", linkDB + "/database/bdd.db"))
+            QFile::moveToTrash(linkDB + "/bdd.db");
+        if(QFile::copy(linkDB + "/bdd_Sav1.sav", linkDB + "/database/bdd_Sav1.sav"))
+                QFile::moveToTrash(linkDB + "/bdd_Sav1.sav");
+        if(QFile::copy(linkDB + "/bdd_Sav2.sav", linkDB + "/database/bdd_Sav2.sav"))
+                QFile::moveToTrash(linkDB + "/bdd_Sav2.sav");
+        if(QFile::copy(linkDB + "/bdd_Sav3.sav", linkDB + "/database/bdd_Sav3.sav"))
+                QFile::moveToTrash(linkDB + "/bdd_Sav3.sav");
+        linkDB = linkDB + "/database";
+        settings.setValue("linkDB", linkDB);
+    }
+
+    //Ouverture de la DB   
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(linkDB + "/bdd.db");
     db.setHostName("127.0.0.1");
@@ -89,48 +104,50 @@ bool database::update_Client(QString nom, QString prenom, QString phone, QString
         query.exec(QString("SELECT * FROM Clients WHERE ID='%1'").arg(id));
     if(query.next()) {
         request = "UPDATE Clients SET "
-                "nom='" + nom + "',"
-                "prenom='" + prenom + "',"
-                "phone='"+ phone + "',"
-                "email='"+ email + "',"
-                "car_Purchased='" + car_purchased + "',"
-                "car_Reprossessed='" + car_reprossessed + "',"
+                "nom='" + RemoveBadChar(nom) + "',"
+                "prenom='" + RemoveBadChar(prenom) + "',"
+                "phone='"+ RemoveBadChar(phone) + "',"
+                "email='"+ RemoveBadChar(email) + "',"
+                "car_Purchased='" + RemoveBadChar(car_purchased) + "',"
+                "car_Reprossessed='" + RemoveBadChar(car_reprossessed) + "',"
                 "date_Livraison_Initial='" + date_livraison_initial.toString("yyyy-MM-dd") + "',"
                 "date_Livraison_Prevu='" + date_livraison_prevu.toString("yyyy-MM-dd") + "',"
                 "rappel_Livraison='" + rappel_livraison.toString("yyyy-MM-dd") + "',"
-                "type_Financement='" + type_financement + "',"
+                "type_Financement='" + RemoveBadChar(type_financement) + "',"
                 "duree_Financement='" + QString::number(duree_financement) + "',"
                 "rappel_Financement='" + rappel_financement.toString("yyyy-MM-dd") + "',"
-                "documents='" + documents + "',"
-                "commentaire='" + commentaire + "', "
+                "documents='" + RemoveBadChar(documents) + "',"
+                "commentaire='" + RemoveBadChar(commentaire) + "', "
                 "eng_Reprise='" + QString::number(eng_reprise) + "', "
-                "societe='" + societe + "', "
-                "kbis='" + kbis + "' "
+                "societe='" + RemoveBadChar(societe) + "', "
+                "kbis='" + RemoveBadChar(kbis) + "' "
                 "WHERE ID='" + QString::number(id) + "'";
     }
     else {
         request = "INSERT INTO Clients VALUES("
                 "'" + QString::number(id) + "',"
-                "'" + nom + "',"
-                "'" + prenom + "',"
-                "'"+ phone + "',"
-                "'"+ email + "',"
-                "'" + car_purchased + "',"
-                "'" + car_reprossessed + "',"
+                "'" + RemoveBadChar(nom) + "',"
+                "'" + RemoveBadChar(prenom) + "',"
+                "'" + RemoveBadChar(phone) + "',"
+                "'" + RemoveBadChar(email) + "',"
+                "'" + RemoveBadChar(car_purchased) + "',"
+                "'" + RemoveBadChar(car_reprossessed) + "',"
                 "'" + date_livraison_initial.toString("yyyy-MM-dd") + "',"
                 "'" + date_livraison_prevu.toString("yyyy-MM-dd") + "',"
                 "'" + rappel_livraison.toString("yyyy-MM-dd") + "',"
-                "'" + type_financement + "',"
+                "'" + RemoveBadChar(type_financement) + "',"
                 "'" + QString::number(duree_financement) + "',"
                 "'" + rappel_financement.toString("yyyy-MM-dd") + "',"
-                "'" + documents + "',"
-                "'" + commentaire + "',"
+                "'" + RemoveBadChar(documents) + "',"
+                "'" + RemoveBadChar(commentaire) + "',"
                 "'" + QString::number(eng_reprise) + "',"
                 "'" + QString::number(rappel) + "',"
-                "'" + societe + "',"
-                "'" + kbis + "')";
+                "'" + RemoveBadChar(societe) + "',"
+                "'" + RemoveBadChar(kbis) + "')";
     }
-    return query.exec(request);
+    bool result = query.exec(request);
+    Save();
+    return result;
 }
 
 int database::Get_Last_Id()
@@ -141,17 +158,115 @@ int database::Get_Last_Id()
     return query.value(0).toInt();
 }
 
+void database::close()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    db.close();
+}
+
+void database::Save()
+{qDebug() << "Save";
+    QList<QDate> DBSave;
+    QSettings settings("DB_Clients","DB_Clients");
+    for(int i = 1; i < 4; i++) {
+        QFileInfo dbInfo(settings.value("linkDB").toString() + QString("/bdd_Sav%1.sav").arg(i));
+        if(dbInfo.isFile())
+            DBSave.append(dbInfo.lastModified().date());
+        else
+            DBSave.append(QDate());
+    }
 
 
+    if(DBSave.at(0) != QDate::currentDate() && DBSave.at(1) != QDate::currentDate() && DBSave.at(2) != QDate::currentDate()) {
+        QString file = "";
+        if((DBSave.at(0) < DBSave.at(1) && DBSave.at(0) < DBSave.at(2)) || DBSave.at(0).isNull())
+            file = "bdd_Sav1.sav";
+        else if((DBSave.at(1) < DBSave.at(0) && DBSave.at(1) < DBSave.at(2)) || DBSave.at(1).isNull())
+            file = "bdd_Sav2.sav";
+        else
+            file = "bdd_Sav3.sav";
+
+        QFile::remove(settings.value("linkDB").toString() + "/" + file);
+        QFile::copy(settings.value("linkDB").toString() + "/bdd.db", settings.value("linkDB").toString() + "/" + file);
+
+    }
+}
+
+bool database::isIdExist(int id)
+{
+    QSqlQuery req;
+    req.exec("SELECT ID FROM Clients WHERE ID='" + QString::number(id) + "'");
+
+    if(req.next())
+        return true;
+    return false;
+}
+
+QMap<QString, QVariant> database::GetCustomerInfo(int id)
+{
+    QSqlQuery req;
+    req.exec("SELECT * FROM Clients WHERE ID='" + QString::number(id) + "'");
 
 
+    QMap<QString, QVariant> data;
+    if(req.next()) {
 
+        data.insert("ID", req.value("ID"));
+        data.insert("name", RestoreBadChar(req.value("nom").toString()));
+        data.insert("surname", RestoreBadChar(req.value("prenom").toString()));
+        data.insert("phone", RestoreBadChar(req.value("phone").toString()));
+        data.insert("email", RestoreBadChar(req.value("email").toString()));
+        data.insert("carPurchased", RestoreBadChar(req.value("car_Purchased").toString()));
+        data.insert("carReprossessed", RestoreBadChar(req.value("car_Reprossessed").toString()));
+        data.insert("originalDeliveryDate", req.value("date_Livraison_Initial"));
+        data.insert("expectedDeliveryDate", req.value("date_Livraison_Prevu"));
+        data.insert("rappelLivraison", req.value("rappel_Livraison"));
+        data.insert("financement", RestoreBadChar(req.value("type_Financement").toString()));
+        data.insert("repaymentPeriod", req.value("duree_Financement"));
+        data.insert("rappelFinancement", req.value("rappel_Financement"));
+        data.insert("documents", RestoreBadChar(req.value("documents").toString()));
+        data.insert("commentaire", RestoreBadChar(req.value("commentaire").toString()));
+        data.insert("engReprise", req.value("eng_Reprise"));
+        data.insert("rappel", req.value("rappel"));
+        data.insert("societe", RestoreBadChar(req.value("societe").toString()));
+        data.insert("kbis", RestoreBadChar(req.value("kbis").toString()));
+    }
+    return data;
+}
 
+QList<QMap<QString, QVariant>> database::GetAllCustomerInfo()
+{
+    QList<QMap<QString, QVariant>> customerList;
+    QSqlQuery req;
+    req.exec("SELECT ID FROM Clients");
+    while(req.next())
+        customerList.append(GetCustomerInfo(req.value(0).toInt()));
 
+    return customerList;
+}
 
+bool database::SetRappel(int id, int rappel)
+{
+    QSqlQuery req;
+    return req.exec(QString("UPDATE Clients SET rappel='" + QString::number(rappel) + "' WHERE ID='" + QString::number(id)) + "'");
+}
 
+bool database::RemoveCustomer(int id)
+{
+    QSqlQuery request;
+    return request.exec("DELETE FROM Clients WHERE ID='" + QString::number(id) + "'");
+}
 
+QString database::RemoveBadChar(QString str)
+{
+    str.replace("\"","|||");
+    str.replace("'","||");
+    return str;
+}
 
-
-
-
+QString database::RestoreBadChar(QString str)
+{
+    str.replace("|||","\"");
+    str.replace("||","'");
+    return str;
+}

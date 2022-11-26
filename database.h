@@ -5,6 +5,7 @@
 #include <QtSql>
 #include <QStringList>
 
+
 #ifndef DEBUG
     #define DEBUG qDebug()
 #endif
@@ -19,9 +20,20 @@ public:
                        QString type_financement, int duree_financement, QDate rappel_financement, QString documents, QString commentaire, int eng_reprise, int id, int rappel, QString societe, QString kbis);
     static int Get_Last_Id();
     bool init();
+    static void close();
+    void Save();
+    bool isIdExist(int id);
+    QMap<QString, QVariant> GetCustomerInfo(int id);
+    QList<QMap<QString, QVariant>> GetAllCustomerInfo();
+    bool SetRappel(int id, int rappel);
+    bool RemoveCustomer(int id);
 
 
 signals:
+
+private:
+    QString RemoveBadChar(QString str);
+    QString RestoreBadChar(QString str);
 
 };
 
